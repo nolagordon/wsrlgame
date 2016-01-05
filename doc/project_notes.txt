@@ -1,0 +1,16 @@
+Feature ideas:
+1. persistence
+2. map
+3. avatar/player character
+4. motion
+5. monsters/companions
+hit pts/ other statistics
+permadeath
+ailments? status ailments? including hunger
+6. combat
+7. currency
+inventory
+8. items
+9. stores
+progression of difficulty/level
+story
