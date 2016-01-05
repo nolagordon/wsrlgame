@@ -30,17 +30,17 @@ Game.UIMode.gamePersistence = {
   },
   renderOnMain: function (display) {
     display.clear();
-    display.drawText(1,3,"press S to save the current game, L to load the saved game, or N start a new one");
+    display.drawText(1,3,"press 's' to save the current game, 'l' to load the saved game, or 'n' start a new one");
     console.log("TODO: check whether local storage has a game before offering restore");
     console.log("TODO: check whether a game is in progress before offering restore");
   },
   handleInput: function(eventType, evt){
     var evtChar = String.fromCharCode(evt.charCode);
-    if (evtChar == 'S') { // ignore the various modding keys - control, shift, etc.
+    if (evtChar == 's') { // ignore the various modding keys - control, shift, etc.
       this.saveGame();
-    } else if (evtChar == 'L') {
+    } else if (evtChar == 'l') {
       this.restoreGame();
-    } else if (evtChar == 'N') {
+    } else if (evtChar == 'n') {
       this.newGame();
     }
   },
