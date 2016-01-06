@@ -23,6 +23,8 @@ window.onload = function() {
 
 var Game = {
   _PERSISTENCE_NAMESPACE: 'wsrlgame',
+
+  _DISPLAY_SPACING: 1.1,
   DISPLAYS: {
     avatar: {
       w: 20,
@@ -77,6 +79,9 @@ var Game = {
   },
   getDisplay: function(displayName) {
     return this.DISPLAYS[displayName].o;
+  },
+  refresh: function () {
+    this.renderAll();
   },
   renderAll: function() {
     this.renderAvatar();

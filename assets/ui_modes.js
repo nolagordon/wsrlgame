@@ -1,11 +1,15 @@
 Game.UIMode = {};
+Game.UIMode.DEFAULT_COLOR_FG = '#fff';
+Game.UIMode.DEFAULT_COLOR_BG = '#000';
+Game.UIMode.DEFAULT_COLOR_STR = '%c{'+Game.UIMode.DEFAULT_COLOR_FG+'}%b{'+Game.UIMode.DEFAULT_COLOR_BG+'}';
 
 Game.UIMode.gameStart = {
   enter: function () {
-    console.log("Game.UIMode.gameStart enter");
+    console.log('game starting');
+    Game.refresh();
   },
   exit: function () {
-    console.log("Game.UIMode.gameStart exit");
+    Game.refresh();
   },
   handleInput: function (eventType, evt) {
     console.log("Game.UIMode.gameStart handleInput");
@@ -14,23 +18,27 @@ Game.UIMode.gameStart = {
     }
   },
   renderOnMain: function (display) {
+    var fg = Game.UIMode.DEFAULT_COLOR_FG;
+    var bg = Game.UIMode.DEFAULT_COLOR_BG;
     console.log("Game.UIMode.gameStart renderOnMain");
     display.clear();
-    display.drawText(4,4,"Welcome to WSRL");
-    display.drawText(4,6,"press any key to continue");
+    display.drawText(4,4,"Welcome to WSRL",fg,bg);
+    display.drawText(4,6,"press any key to continue",fg,bg);
   }
 };
 
 Game.UIMode.gamePersistence = {
   enter: function () {
-    console.log("Game.UIMode.gamePersistence enter");
+    Game.refresh();
   },
   exit: function () {
-    console.log("Game.UIMode.gamePersistence exit");
+    Game.refresh();
   },
   renderOnMain: function (display) {
+    var fg = Game.UIMode.DEFAULT_COLOR_FG;
+    var bg = Game.UIMode.DEFAULT_COLOR_BG;
     display.clear();
-    display.drawText(1,3,"press 's' to save the current game, 'l' to load the saved game, or 'n' start a new one");
+    display.drawText(1,3,"press 's' to save the current game, 'l' to load the saved game, or 'n' start a new one",fg,bg);
     console.log("TODO: check whether local storage has a game before offering restore");
     console.log("TODO: check whether a game is in progress before offering restore");
   },
@@ -49,6 +57,7 @@ Game.UIMode.gamePersistence = {
       var json_state_data = window.localStorage.getItem(Game._PERSISTENCE_NAMESPACE);
       var state_data = JSON.parse(json_state_data);
       Game.setRandomSeed(state_data._randomSeed);
+      Game.UIMode.gamePlay.setupPlay();
       Game.switchUiMode(Game.UIMode.gamePlay);
     }
    },
@@ -60,6 +69,7 @@ Game.UIMode.gamePersistence = {
    },
    newGame: function () {
      Game.setRandomSeed(5 + Math.floor(ROT.RNG.getUniform()*100000));
+     Game.UIMode.gamePlay.setupPlay();
      Game.switchUiMode(Game.UIMode.gamePlay);
    },
    localStorageAvailable: function() {
@@ -77,11 +87,16 @@ Game.UIMode.gamePersistence = {
 };
 
 Game.UIMode.gamePlay = {
+  attr: {
+    _map: null
+  },
   enter: function () {
-    console.log("Game.UIMode.gamePlay enter");
+    console.log('game playing');
+    Game.Message.clearMessages();
+    Game.refresh();
   },
   exit: function () {
-    console.log("Game.UIMode.gamePlay exit");
+    Game.refresh();
   },
   handleInput: function (eventType,evt) {
     console.log("Game.UIMode.gamePlay handleInput");
@@ -97,11 +112,37 @@ Game.UIMode.gamePlay = {
 
   },
   renderOnMain: function (display) {
+    var fg = Game.UIMode.DEFAULT_COLOR_FG;
+    var bg = Game.UIMode.DEFAULT_COLOR_BG;
     console.log("Game.UIMode.gamePlay renderOnMain");
     display.clear();
-    display.drawText(4,4,"Press [Enter] to win, [Esc] to lose");
-    display.drawText(1,5,"press = to save, restore, or start a new game");
-  }
+    this.attr._map.renderOn(display);
+    display.drawText(4,4,"Press [Enter] to win, [Esc] to lose",fg,bg);
+    display.drawText(1,5,"press = to save, restore, or start a new game",fg,bg);
+  },
+  setupPlay: function () {
+    var mapTiles = Game.util.init2DArray(80,24,Game.Tile.nullTile);
+    var generator = new ROT.Map.Cellular(80, 24);
+    generator.randomize(0.5);
+
+    // repeated cellular automata process
+    var totalIterations = 3;
+    for (var i = 0; i < totalIterations - 1; i++) {
+      generator.create();
+    }
+
+    // run again then update map
+    generator.create(function(x,y,v) {
+      if (v === 1) {
+        mapTiles[x][y] = Game.Tile.floorTile;
+      } else {
+        mapTiles[x][y] = Game.Tile.wallTile;
+      }
+    });
+
+    // create map from the tiles
+    this.attr._map =  new Game.Map(mapTiles);
+   }
 };
 
 Game.UIMode.gameLose = {
@@ -115,9 +156,11 @@ Game.UIMode.gameLose = {
     console.log("Game.UIMode.gameLose handleInput");
   },
   renderOnMain: function (display) {
+    var fg = Game.UIMode.DEFAULT_COLOR_FG;
+    var bg = Game.UIMode.DEFAULT_COLOR_BG;
     console.log("Game.UIMode.gameLose renderOnMain");
     display.clear();
-    display.drawText(4,4,"You lost!");
+    display.drawText(4,4,"You lost!",fg,bg);
   }
 };
 
@@ -132,8 +175,10 @@ Game.UIMode.gameWin = {
     console.log("Game.UIMode.gameWin handleInput");
   },
   renderOnMain: function (display) {
+    var fg = Game.UIMode.DEFAULT_COLOR_FG;
+    var bg = Game.UIMode.DEFAULT_COLOR_BG;
     console.log("Game.UIMode.gameWin renderOnMain");
     display.clear();
-    display.drawText(4,4,"You WON!!!");
+    display.drawText(4,4,"You WON!!!",fg,bg);
   }
 };
