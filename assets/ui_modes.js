@@ -36,30 +36,43 @@ Game.UIMode.gamePersistence = {
   },
   handleInput: function(eventType, evt){
     var evtChar = String.fromCharCode(evt.charCode);
-    if (evtChar == 's') { // ignore the various modding keys - control, shift, etc.
+    if (evt.keyCode == ROT.VK_S) { // ignore the various modding keys - control, shift, etc.
       this.saveGame();
-    } else if (evtChar == 'l') {
+    } else if (evt.keyCode == ROT.VK_L) {
       this.restoreGame();
-    } else if (evtChar == 'n') {
+    } else if (evt.keyCode == ROT.VK_N) {
       this.newGame();
     }
   },
   restoreGame: function () {
-    var  json_state_data = '{"randomSeed":12}';
-    console.log('TODO: implement recovering game state from local storage');
-    var state_data = JSON.parse(json_state_data);
-    console.dir(state_data);
-    Game.setRandomSeed(state_data.randomSeed);
-    console.log("post-restore: using random seed "+Game.getRandomSeed());
-    Game.switchUiMode(Game.UIMode.gamePlay);
+    if (this.localStorageAvailable()) {
+      var json_state_data = window.localStorage.getItem(Game._PERSISTENCE_NAMESPACE);
+      var state_data = JSON.parse(json_state_data);
+      Game.setRandomSeed(state_data._randomSeed);
+      Game.switchUiMode(Game.UIMode.gamePlay);
+    }
    },
    saveGame: function (json_state_data) {
-     console.log('TODO: implement saving game state to local storage');
-     Game.switchUiMode(Game.UIMode.gamePlay);
+     if (this.localStorageAvailable()) {
+       window.localStorage.setItem(Game._PERSISTENCE_NAMESPACE, JSON.stringify(Game._game)); // .toJSON()
+       Game.switchUiMode(Game.UIMode.gamePlay);
+     }
    },
    newGame: function () {
-     Game.setRandomSeed(5 + Math.floor(Math.random()*100000));
+     Game.setRandomSeed(5 + Math.floor(ROT.RNG.getUniform()*100000));
      Game.switchUiMode(Game.UIMode.gamePlay);
+   },
+   localStorageAvailable: function() {
+     try {
+       var x = '__storage_test__';
+       window.localStorage.setItem(x,x);
+       window.localStorage.removeItem(x);
+       return true;
+     }
+     catch (e) {
+       Game.Message.send('Sorry, no local data storage is available for this browser');
+       return false;
+     }
    }
 };
 
@@ -78,6 +91,8 @@ Game.UIMode.gamePlay = {
       Game.switchUiMode(Game.UIMode.gameWin);
     } else if (eventType == "keydown" && evt.keyCode == 27) {
       Game.switchUiMode(Game.UIMode.gameLose);
+    } else if (eventType == "keydown" && evt.keyCode == 187) {
+      Game.switchUiMode(Game.UIMode.gamePersistence);
     }
 
   },

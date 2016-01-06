@@ -22,6 +22,7 @@ window.onload = function() {
 };
 
 var Game = {
+  _PERSISTENCE_NAMESPACE: 'wsrlgame',
   DISPLAYS: {
     avatar: {
       w: 20,
@@ -44,6 +45,7 @@ var Game = {
   _randomSeed: 0,
   init: function () {
     this._game = this;
+    Game.setRandomSeed(5 + Math.floor(ROT.RNG.getUniform()*100000));
     console.log("WSRL Live Initialization");
     // this.DISPLAYS.main.o = new ROT.Display({width:this.DISPLAYS.main.w, height:this.DISPLAYS.main.h});
     for (var displayName in this.DISPLAYS) {
@@ -108,6 +110,10 @@ var Game = {
       this._curUiMode.enter();
     }
     this.renderAll();
+  },
+  toJSON: function() {
+    var json = {"_randomSeed":this._randomSeed};
+    return json;
   },
   eventHandler: function(eventType, evt) {
     console.log(eventType);
