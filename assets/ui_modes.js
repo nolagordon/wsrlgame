@@ -88,7 +88,11 @@ Game.UIMode.gamePersistence = {
 
 Game.UIMode.gamePlay = {
   attr: {
-    _map: null
+    _map: null,
+    _mapWidth: 300,
+    _mapHeight: 200,
+    _cameraX: 100,
+    _cameraY: 100
   },
   enter: function () {
     console.log('game playing');
@@ -98,17 +102,44 @@ Game.UIMode.gamePlay = {
   exit: function () {
     Game.refresh();
   },
+  moveCamera: function (dx,dy) {
+    this.attr._cameraX = Math.min(Math.max(0,this.attr._cameraX + dx),this.attr._mapWidth);
+    this.attr._cameraY = Math.min(Math.max(0,this.attr._cameraY + dy),this.attr._mapHeight);
+  },
   handleInput: function (eventType,evt) {
+    var pressedKey = String.fromCharCode(inputData.charCode);
     console.log("Game.UIMode.gamePlay handleInput");
     console.log(eventType);
     console.dir(evt);
     if (eventType == "keypress" && evt.keyCode == 13) {
       Game.switchUiMode(Game.UIMode.gameWin);
+      return;
     } else if (eventType == "keydown" && evt.keyCode == 27) {
       Game.switchUiMode(Game.UIMode.gameLose);
+      return;
     } else if (eventType == "keydown" && evt.keyCode == 187) {
       Game.switchUiMode(Game.UIMode.gamePersistence);
+      return;
+    } else if (pressedKey == '1') {
+      this.moveCamera(-1,1);
+    } else if (pressedKey == '2') {
+      this.moveCamera(0,1);
+    } else if (pressedKey == '3') {
+      this.moveCamera(1,1);
+    } else if (pressedKey == '4') {
+      this.moveCamera(-1,0);
+    } else if (pressedKey == '5') {
+      // do nothing / stay still
+    } else if (pressedKey == '6') {
+      this.moveCamera(1,0);
+    } else if (pressedKey == '7') {
+      this.moveCamera(-1,-1);
+    } else if (pressedKey == '8') {
+      this.moveCamera(0,-1);
+    } else if (pressedKey == '9') {
+      this.moveCamera(1,-1);
     }
+    Game.refresh();
 
   },
   renderOnMain: function (display) {
@@ -116,13 +147,13 @@ Game.UIMode.gamePlay = {
     var bg = Game.UIMode.DEFAULT_COLOR_BG;
     console.log("Game.UIMode.gamePlay renderOnMain");
     display.clear();
-    this.attr._map.renderOn(display);
+    this.attr._map.renderOn(display,this.attr._cameraX,this.attr._cameraY);
     display.drawText(4,4,"Press [Enter] to win, [Esc] to lose",fg,bg);
     display.drawText(1,5,"press = to save, restore, or start a new game",fg,bg);
   },
   setupPlay: function () {
-    var mapTiles = Game.util.init2DArray(80,24,Game.Tile.nullTile);
-    var generator = new ROT.Map.Cellular(80, 24);
+    var mapTiles = Game.util.init2DArray(this.attr._mapWidth,this.attr._mapHeight,Game.Tile.nullTile);
+    var generator = new ROT.Map.Cellular(this.attr._mapWidth,this.attr._mapHeight);
     generator.randomize(0.5);
 
     // repeated cellular automata process
