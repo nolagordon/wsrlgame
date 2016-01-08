@@ -26,6 +26,14 @@ Game.Entity = function(template) {
         this[mixinProp] = mixin[mixinProp];
       }
     }
+    if (mixin.META.hasOwnProperty('stateNamespace')) {
+      this.attr[mixin.META.stateNamespace] = {};
+      for (var mixinStateProp in mixin.META.stateModel) {
+        if (mixin.META.stateModel.hasOwnProperty(mixinStateProp)) {
+          this.attr[mixin.META.stateNamespace][mixinStateProp] = mixin.META.stateModel[mixinStateProp];
+        }
+      }
+    }
     if (mixin.META.hasOwnProperty('init')) {
       mixin.META.init.call(this,template);
     }
@@ -47,9 +55,14 @@ Game.Entity.prototype.getName = function() {
 Game.Entity.prototype.setName = function(name) {
   this.attr._name = name;
 };
-Game.Entity.prototype.setPos = function(x,y) {
-  this.attr._x = x;
-  this.attr._y = y;
+Game.Entity.prototype.setPos = function(x_or_xy,y) {
+  if (typeof x_or_xy == 'object') {
+    this.attr._x = x_or_xy.x;
+    this.attr._y = x_or_xy.y;
+  } else {
+    this.attr._x = x_or_xy;
+    this.attr._y = y;
+  }
 };
 Game.Entity.prototype.getX = function() {
   return this.attr._x;
