@@ -110,6 +110,7 @@ Game.UIMode.gamePlay = {
   setCamera: function (sx,sy) {
     this.attr._cameraX = Math.min(Math.max(0,sx),this.attr._mapWidth);
     this.attr._cameraY = Math.min(Math.max(0,sy),this.attr._mapHeight);
+    Game.refresh();
   },
   setCameraToAvatar: function () {
     this.setCamera(this.attr._avatar.getX(),this.attr._avatar.getY());
@@ -147,8 +148,6 @@ Game.UIMode.gamePlay = {
     } else if (pressedKey == '9') {
       this.moveAvatar(1,-1);
     }
-    Game.refresh();
-
   },
   renderOnMain: function (display) {
     var fg = Game.UIMode.DEFAULT_COLOR_FG;
@@ -171,9 +170,9 @@ Game.UIMode.gamePlay = {
     display.drawText(1,3,"avatar y: "+this.attr._avatar.getY(),fg,bg); // DEV
   },
   moveAvatar: function (dx,dy) {
-    this.attr._avatar.setX(Math.min(Math.max(0,this.attr._avatar.getX() + dx),this.attr._mapWidth));
-    this.attr._avatar.setY(Math.min(Math.max(0,this.attr._avatar.getY() + dy),this.attr._mapHeight));
-    this.setCameraToAvatar();
+    if (this.attr._avatar.tryWalk(this.attr._map,dx,dy)) {
+      this.setCameraToAvatar();
+    }
   },
   setupPlay: function (restorationData) {
     var mapTiles = Game.util.init2DArray(this.attr._mapWidth,this.attr._mapHeight,Game.Tile.nullTile);
