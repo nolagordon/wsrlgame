@@ -35,7 +35,15 @@ Game.Map.prototype.renderOn = function (display,camX,camY) {
       if (tile.getName() == 'nullTile') {
         tile = Game.Tile.wallTile;
       }
-      tile.getSymbol().draw(display,x,y);
+      tile.draw(display,x,y);
     }
   }
+};
+
+Game.Map.prototype.toJSON = function () {
+  // do nothing.... for now....
+};
+
+Game.Map.prototype.fromJSON = function () {
+  // do nothing.... for now....
 };
