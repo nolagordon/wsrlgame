@@ -89,8 +89,13 @@ var Game = {
     this.renderMessage();
   },
   renderAvatar: function() {
-    if (this._curUiMode !== null && this._curUiMode.hasOwnProperty('renderOnAvatar')) {
-      this._curUiMode.renderOnAvatar(this.DISPLAYS.avatar.o);
+    this.DISPLAYS.avatar.o.clear();
+    if (this._curUiMode === null) {
+      return;
+    }
+
+    if (this._curUiMode.hasOwnProperty('renderAvatarInfo')) {
+      this._curUiMode.renderAvatarInfo(this.DISPLAYS.avatar.o);
     } else {
       this.DISPLAYS.avatar.o.drawText(2,1,"avatar display");
     }
@@ -117,7 +122,9 @@ var Game = {
     this.renderAll();
   },
   toJSON: function() {
-    var json = {"_randomSeed":this._randomSeed};
+    var json = {};
+    json._randomSeed = this._randomSeed;
+    json[Game.UIMode.gamePlay.JSON_KEY] = Game.UIMode.gamePlay.toJSON();
     return json;
   },
   eventHandler: function(eventType, evt) {

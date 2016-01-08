@@ -57,7 +57,7 @@ Game.UIMode.gamePersistence = {
       var json_state_data = window.localStorage.getItem(Game._PERSISTENCE_NAMESPACE);
       var state_data = JSON.parse(json_state_data);
       Game.setRandomSeed(state_data._randomSeed);
-      Game.UIMode.gamePlay.setupPlay();
+      Game.UIMode.gamePlay.setupPlay(state_data);
       Game.switchUiMode(Game.UIMode.gamePlay);
     }
    },
@@ -92,8 +92,11 @@ Game.UIMode.gamePlay = {
     _mapWidth: 300,
     _mapHeight: 200,
     _cameraX: 100,
-    _cameraY: 100
+    _cameraY: 100,
+    _avatarX: 100,
+    _avatarY: 100
   },
+  JSON_KEY: 'uiMode_gamePlay',
   enter: function () {
     console.log('game playing');
     Game.Message.clearMessages();
@@ -103,11 +106,17 @@ Game.UIMode.gamePlay = {
     Game.refresh();
   },
   moveCamera: function (dx,dy) {
-    this.attr._cameraX = Math.min(Math.max(0,this.attr._cameraX + dx),this.attr._mapWidth);
-    this.attr._cameraY = Math.min(Math.max(0,this.attr._cameraY + dy),this.attr._mapHeight);
+    this.setCamera(this.attr._cameraX + dx,this.attr._cameraY + dy);
+  },
+  setCamera: function (sx,sy) {
+    this.attr._cameraX = Math.min(Math.max(0,sx),this.attr._mapWidth);
+    this.attr._cameraY = Math.min(Math.max(0,sy),this.attr._mapHeight);
+  },
+  setCameraToAvatar: function () {
+    this.setCamera(this.attr._avatarX,this.attr._avatarY);
   },
   handleInput: function (eventType,evt) {
-    var pressedKey = String.fromCharCode(inputData.charCode);
+    var pressedKey = String.fromCharCode(evt.charCode);
     console.log("Game.UIMode.gamePlay handleInput");
     console.log(eventType);
     console.dir(evt);
@@ -121,23 +130,23 @@ Game.UIMode.gamePlay = {
       Game.switchUiMode(Game.UIMode.gamePersistence);
       return;
     } else if (pressedKey == '1') {
-      this.moveCamera(-1,1);
+      this.moveAvatar(-1,1);
     } else if (pressedKey == '2') {
-      this.moveCamera(0,1);
+      this.moveAvatar(0,1);
     } else if (pressedKey == '3') {
-      this.moveCamera(1,1);
+      this.moveAvatar(1,1);
     } else if (pressedKey == '4') {
-      this.moveCamera(-1,0);
+      this.moveAvatar(-1,0);
     } else if (pressedKey == '5') {
       // do nothing / stay still
     } else if (pressedKey == '6') {
-      this.moveCamera(1,0);
+      this.moveAvatar(1,0);
     } else if (pressedKey == '7') {
-      this.moveCamera(-1,-1);
+      this.moveAvatar(-1,-1);
     } else if (pressedKey == '8') {
-      this.moveCamera(0,-1);
+      this.moveAvatar(0,-1);
     } else if (pressedKey == '9') {
-      this.moveCamera(1,-1);
+      this.moveAvatar(1,-1);
     }
     Game.refresh();
 
@@ -150,8 +159,24 @@ Game.UIMode.gamePlay = {
     this.attr._map.renderOn(display,this.attr._cameraX,this.attr._cameraY);
     display.drawText(4,4,"Press [Enter] to win, [Esc] to lose",fg,bg);
     display.drawText(1,5,"press = to save, restore, or start a new game",fg,bg);
+    this.renderAvatar(display);
   },
-  setupPlay: function () {
+  renderAvatar: function(display) {
+    Game.Symbol.AVATAR.draw(display,this.attr._avatarX-this.attr._cameraX+display._options.width/2,
+                                    this.attr._avatarY-this.attr._cameraY+display._options.height/2);
+  },
+  renderAvatarInfo: function (display) {
+    var fg = Game.UIMode.DEFAULT_COLOR_FG;
+    var bg = Game.UIMode.DEFAULT_COLOR_BG;
+    display.drawText(1,2,"avatar x: "+this.attr._avatarX,fg,bg); // DEV
+    display.drawText(1,3,"avatar y: "+this.attr._avatarY,fg,bg); // DEV
+  },
+  moveAvatar: function (dx,dy) {
+    this.attr._avatarX = Math.min(Math.max(0,this.attr._avatarX + dx),this.attr._mapWidth);
+    this.attr._avatarY = Math.min(Math.max(0,this.attr._avatarY + dy),this.attr._mapHeight);
+    this.setCameraToAvatar();
+  },
+  setupPlay: function (restorationData) {
     var mapTiles = Game.util.init2DArray(this.attr._mapWidth,this.attr._mapHeight,Game.Tile.nullTile);
     var generator = new ROT.Map.Cellular(this.attr._mapWidth,this.attr._mapHeight);
     generator.randomize(0.5);
@@ -173,7 +198,28 @@ Game.UIMode.gamePlay = {
 
     // create map from the tiles
     this.attr._map =  new Game.Map(mapTiles);
-   }
+
+    // restore anything else if the data is available
+    if (restorationData !== undefined && restorationData.hasOwnProperty(Game.UIMode.gamePlay.JSON_KEY)) {
+      this.fromJSON(restorationData[Game.UIMode.gamePlay.JSON_KEY]);
+    }
+  },
+  toJSON: function() {
+    var json = {};
+    for (var at in this.attr) {
+      if (this.attr.hasOwnProperty(at) && at!='_map') {
+        json[at] = this.attr[at];
+      }
+    }
+    return json;
+  },
+  fromJSON: function (json) {
+    for (var at in this.attr) {
+      if (this.attr.hasOwnProperty(at) && at!='_map') {
+        this.attr[at] = json[at];
+      }
+    }
+  }
 };
 
 Game.UIMode.gameLose = {
