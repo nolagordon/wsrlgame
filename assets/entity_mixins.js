@@ -74,3 +74,43 @@ Game.EntityMixin.HitPoints = {
     this.attr._HitPoints_attr.curHp = Math.min(this.attr._HitPoints_attr.curHp+amt,this.attr._HitPoints_attr.maxHp);
   }
 };
+
+Game.EntityMixin.Hunger = {
+  META: {
+    mixinName: 'Hunger',
+    mixinGroup: 'Hunger',
+    stateNamespace: '_Hunger_attr',
+    stateModel:  {
+      status: 4
+    },
+    init: function (template) {
+      this.attr._Hunger_attr.status = template.status || 4;
+    }
+  },
+  statusToString: function() {
+    switch(this.attr._Hunger_attr.status) {
+      case 1:
+        return "starving";
+      case 2:
+        return "ravenous";
+      case 3:
+        return "hungry";
+      case 4:
+        return "fine";
+      case 5:
+        return "full";
+      case 6:
+        return "stuffed";
+      case 7:
+        return "brainfreeze!";
+      default:
+        return "error: out of range";
+    }
+  },
+  getStatus: function () {
+    return this.attr._Hunger_attr.status;
+  },
+  setStatus: function (n) {
+    this.attr._Hunger_attr.status = n;
+  }
+};

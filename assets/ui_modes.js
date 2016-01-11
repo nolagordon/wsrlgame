@@ -200,6 +200,9 @@ Game.UIMode.gamePlay = {
     var bg = Game.UIMode.DEFAULT_COLOR_BG;
     display.drawText(1,2,"avatar x: "+this.attr._avatar.getX(),fg,bg); // DEV
     display.drawText(1,3,"avatar y: "+this.attr._avatar.getY(),fg,bg); // DEV
+    display.drawText(1,4,"turns: "+this.attr._avatar.getTurns(),fg,bg);
+    display.drawText(1,5,"HP: "+this.attr._avatar.getCurHp(),fg,bg);
+    display.drawText(1,6,"hunger: "+this.attr._avatar.statusToString(),fg,bg);
   },
   moveAvatar: function (dx,dy) {
     if (this.attr._avatar.tryWalk(this.attr._map,dx,dy)) {
