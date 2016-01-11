@@ -1,7 +1,5 @@
-console.log("hello console");
-
 window.onload = function() {
-    console.log("starting WSRL - window loaded");
+    //console.log("starting WSRL - window loaded");
     // Check if rot.js can work on this browser
     if (!ROT.isSupported()) {
         alert("The rot.js library isn't supported by your browser.");
@@ -13,8 +11,6 @@ window.onload = function() {
         document.getElementById('wsrl-avatar-display').appendChild(   Game.getDisplay('avatar').getContainer());
         document.getElementById('wsrl-main-display').appendChild(   Game.getDisplay('main').getContainer());
         document.getElementById('wsrl-message-display').appendChild(   Game.getDisplay('message').getContainer());
-
-
 
         Game.Message.sendMessage("Welcome to WSRL!");
         Game.switchUiMode(Game.UIMode.gameStart);
@@ -45,6 +41,9 @@ var Game = {
   _game: null,
   _curUiMode: null,
   _randomSeed: 0,
+
+  DATASTORE: {},
+
   init: function () {
     this._game = this;
     Game.setRandomSeed(5 + Math.floor(ROT.RNG.getUniform()*100000));
@@ -75,6 +74,7 @@ var Game = {
   setRandomSeed: function (s) {
     this._randomSeed = s;
     console.log("using random seed "+this._randomSeed);
+    this.DATASTORE[Game.UIMode.gamePersistence.RANDOM_SEED_KEY] = this._randomSeed;
     ROT.RNG.setSeed(this._randomSeed);
   },
   getDisplay: function(displayName) {
@@ -121,12 +121,12 @@ var Game = {
     }
     this.renderAll();
   },
-  toJSON: function() {
+  /*toJSON: function() {
     var json = {};
     json._randomSeed = this._randomSeed;
     json[Game.UIMode.gamePlay.JSON_KEY] = Game.UIMode.gamePlay.toJSON();
     return json;
-  },
+  },*/
   eventHandler: function(eventType, evt) {
     console.log(eventType);
     console.dir(evt);

@@ -1,4 +1,4 @@
-Game.ALL_ENTITIES = {}; // NOTE: consider putting this in the Entity namespace....?
+Game.DATASTORE.ENTITY = {};
 
 Game.Entity = function(template) {
   template = template || {};
@@ -7,11 +7,11 @@ Game.Entity = function(template) {
   this.attr._name = template.name || '';
   this.attr._x = template.x || 0;
   this.attr._y = template.y || 0;
+  this.attr._generator_template_key = template.generator_template_key || '';
+  this.attr._mapId = null;
 
-  this._entityID = Game.util.randomString(32);
-  Game.ALL_ENTITIES[this._entityID] = this;
-
-  this._map = null;
+  this.attr._id = Game.util.randomString(32);
+  Game.DATASTORE.ENTITY[this.attr._id] = this;
 
   // mixin sutff
   // track mixins and groups, copy over non-META properties, and run the mixin init if it exists
@@ -53,13 +53,13 @@ Game.Entity.prototype.hasMixin = function(checkThis) {
   }
 };
 Game.Entity.prototype.getId = function() {
-  return this._entityID;
+  return this.attr._id;
 };
 Game.Entity.prototype.getMap = function() {
-  return this._map;
+  return Game.DATASTORE.MAP[this.attr._mapId];
 };
 Game.Entity.prototype.setMap = function(map) {
-  this._map = map;
+  this.attr._mapId = map.getId();
 };
 Game.Entity.prototype.getName = function() {
   return this.attr._name;
@@ -91,23 +91,10 @@ Game.Entity.prototype.setY = function(y) {
 Game.Entity.prototype.getY   = function() {
   return this.attr._y;
 };
-
 Game.Entity.prototype.toJSON = function () {
   var json = Game.UIMode.gamePersistence.BASE_toJSON.call(this);
-  // for (var i = 0; i < this._mixins; i++) {
-  //   var mixin = this._mixins[i];
-  //   if (mixin.META.toJSON) {
-  //     json['mixin:'+mixin.META.mixinName] = mixin.META.toJSON.call(this);
-  //   }
-  // }
   return json;
 };
 Game.Entity.prototype.fromJSON = function (json) {
   Game.UIMode.gamePersistence.BASE_fromJSON.call(this,json);
-  // for (var i = 0; i < this._mixins; i++) {
-  //   var mixin = this._mixins[i];
-  //   if (mixin.META.fromJSON) {
-  //     mixin.META.fromJSON.call(this,json['mixin:'+mixin.META.mixinName]);
-  //   }
-  // }
 };
