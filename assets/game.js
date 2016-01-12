@@ -41,12 +41,15 @@ var Game = {
   _game: null,
   _curUiMode: null,
   _randomSeed: 0,
+  TRANSIENT_RNG: null,
 
   DATASTORE: {},
 
   init: function () {
     this._game = this;
-    Game.setRandomSeed(5 + Math.floor(ROT.RNG.getUniform()*100000));
+    this.TRANSIENT_RNG = ROT.RNG.clone();
+    Game.setRandomSeed(5 + Math.floor(this.TRANSIENT_RNG.getUniform()*100000));
+
     console.log("WSRL Live Initialization");
     // this.DISPLAYS.main.o = new ROT.Display({width:this.DISPLAYS.main.w, height:this.DISPLAYS.main.h});
     for (var displayName in this.DISPLAYS) {

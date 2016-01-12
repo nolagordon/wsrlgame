@@ -58,8 +58,8 @@ Game.UIMode.gamePersistence = {
       var json_state_data = window.localStorage.getItem(Game._PERSISTENCE_NAMESPACE);
       var state_data = JSON.parse(json_state_data);
 
-      console.log('state data: ');
-      console.dir(state_data);
+      //console.log('state data: ');
+      //console.dir(state_data);
 
       // game level stuff
       Game.setRandomSeed(state_data[this.RANDOM_SEED_KEY]);
@@ -68,10 +68,9 @@ Game.UIMode.gamePersistence = {
       for (var mapId in state_data.MAP) {
         if (state_data.MAP.hasOwnProperty(mapId)) {
           var mapAttr = JSON.parse(state_data.MAP[mapId]);
-          console.log("restoring map "+mapId+" with attributes:");
-          console.dir(mapAttr);
+          //console.log("restoring map "+mapId+" with attributes:");
+          //console.dir(mapAttr);
           Game.DATASTORE.MAP[mapId] = new Game.Map(mapAttr._mapTileSetName);
-          //Game.DATASTORE.MAP[mapId].attr = mapAttr;
           Game.DATASTORE.MAP[mapId].fromJSON(state_data.MAP[mapId]);
         }
       }
@@ -81,7 +80,6 @@ Game.UIMode.gamePersistence = {
         if (state_data.ENTITY.hasOwnProperty(entityId)) {
           var entAttr = JSON.parse(state_data.ENTITY[entityId]);
           Game.DATASTORE.ENTITY[entityId] = Game.EntityGenerator.create(entAttr._generator_template_key);
-          //Game.DATASTORE.ENTITY[entityId].attr = entAttr;
           Game.DATASTORE.ENTITY[entityId].fromJSON(state_data.ENTITY[entityId]);
         }
       }
@@ -94,14 +92,13 @@ Game.UIMode.gamePersistence = {
    },
    saveGame: function () {
      if (this.localStorageAvailable()) {
-       //window.localStorage.setItem(Game._PERSISTENCE_NAMESPACE, JSON.stringify(Game._game)); // .toJSON()
        Game.DATASTORE.GAME_PLAY = Game.UIMode.gamePlay.attr;
-       window.localStorage.setItem(Game._PERSISTENCE_NAMESPACE, JSON.stringify(Game.DATASTORE)); // .toJSON()
+       window.localStorage.setItem(Game._PERSISTENCE_NAMESPACE, JSON.stringify(Game.DATASTORE));
        Game.switchUiMode(Game.UIMode.gamePlay);
      }
    },
    newGame: function () {
-     Game.setRandomSeed(5 + Math.floor(ROT.RNG.getUniform()*100000));
+     Game.setRandomSeed(5 + Math.floor(Game.TRANSIENT_RNG.getUniform()*100000));
      Game.UIMode.gamePlay.setupNewGame();
      Game.switchUiMode(Game.UIMode.gamePlay);
    },
@@ -162,7 +159,7 @@ Game.UIMode.gamePlay = {
   },
   JSON_KEY: 'uiMode_gamePlay',
   enter: function () {
-    console.log('game playing');
+    //console.log('game playing');
     Game.Message.clearMessages();
     if (this.attr._avatarId) {
       this.setCameraToAvatar();
