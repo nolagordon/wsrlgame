@@ -10,15 +10,19 @@ Game.EntityMixin.PlayerMessager = {
       'walkForbidden': function(evtData) {
         Game.Message.sendMessage('you can\'t walk into the '+evtData.target.getName());
         Game.renderMessage();
+        Game.Message.ageMessages();
       },
       'dealtDamage': function(evtData) {
         Game.Message.sendMessage('you hit the '+evtData.damagee.getName()+' for '+evtData.damageAmount);
+        Game.renderMessage();
       },
       'madeKill': function(evtData) {
         Game.Message.sendMessage('you killed the '+evtData.entKilled.getName());
+        Game.renderMessage();
       },
       'damagedBy': function(evtData) {
         Game.Message.sendMessage('the '+evtData.damager.getName()+' hit you for '+evtData.damageAmount);
+        Game.renderMessage();
       },
       'killed': function(evtData) {
         Game.Message.sendMessage('you were killed by the '+evtData.killedBy.getName());
@@ -29,30 +33,84 @@ Game.EntityMixin.PlayerMessager = {
   //    Game.Message.send(msg);
 };
 
+Game.EntityMixin.PlayerActor = {
+  META: {
+    mixinName: 'PlayerActor',
+    mixinGroup: 'Actor',
+    stateNamespace: '_PlayerActor_attr',
+    stateModel:  {
+      baseActionDuration: 1000,
+      actingState: false,
+      currentActionDuration: 1000
+    },
+    init: function (template) {
+      Game.Scheduler.add(this,true, this.getBaseActionDuration());
+    },
+    listeners: {
+      'actionDone': function(evtData) {
+        Game.Scheduler.setDuration(this.getCurrentActionDuration());
+        this.setCurrentActionDuration(this.getBaseActionDuration());
+        Game.TimeEngine.unlock();
+      }
+    }
+  },
+  getBaseActionDuration: function () {
+    return this.attr._PlayerActor_attr.baseActionDuration;
+  },
+  setBaseActionDuration: function (n) {
+    this.attr._PlayerActor_attr.baseActionDuration = n;
+  },
+  getCurrentActionDuration: function () {
+    return this.attr._PlayerActor_attr.currentActionDuration;
+  },
+  setCurrentActionDuration: function (n) {
+    this.attr._PlayerActor_attr.currentActionDuration = n;
+  },
+  isActing: function (state) {
+    if (state !== undefined) {
+      this.attr._PlayerActor_attr.actingState = state;
+    }
+    return this.attr._PlayerActor_attr.actingState;
+  },
+  act: function () {
+    if (this.isActing()) { return; } // a gate to deal with JS timing issues
+    this.isActing(true);
+    Game.refresh();
+    Game.TimeEngine.lock();
+    this.isActing(false);
+  }
+};
+
 Game.EntityMixin.WalkerCorporeal = {
   META: {
     mixinName: 'WalkerCorporeal',
     mixinGroup: 'Walker'
   },
   tryWalk: function (map,dx,dy) {
-    var targetX = Math.min(Math.max(0,this.getX() + dx),map.getWidth());
-    var targetY = Math.min(Math.max(0,this.getY() + dy),map.getHeight());
+    var targetX = Math.min(Math.max(0,this.getX() + dx),map.getWidth()-1);
+    var targetY = Math.min(Math.max(0,this.getY() + dy),map.getHeight()-1);
+    console.log('tryWalk deltas: '+dx+','+dy+' '+this.getName());
+    console.log('tryWalk initial pos: '+this.getX()+','+this.getY()+' '+this.getName());
+    console.log('tryWalk: '+targetX+','+targetY+' '+this.getName());
+
     if (map.getEntity(targetX,targetY)) { // can't walk into spaces occupied by other entities
       this.raiseEntityEvent('bumpEntity',{actor:this,recipient:map.getEntity(targetX,targetY)});
       // NOTE: should bumping an entity always take a turn? might have to get some return data from the event (once event return data is implemented)
-      this.raiseEntityEvent('tookTurn');
       return true;
     }
     var targetTile = map.getTile(targetX,targetY);
     if (targetTile.isWalkable()) {
+      console.log('tryWalk - walkable: '+this.getName());
       this.setPos(targetX,targetY);
       var myMap = this.getMap();
       if (myMap) {
+        console.log('tryWalk - myMap.updateEntityLocation: '+this.getName());
         myMap.updateEntityLocation(this);
       }
-      this.raiseEntityEvent('tookTurn');
+      console.log('tryWalk post movement pos: '+this.getX()+','+this.getY()+' '+this.getName());
       return true;
     } else {
+      console.log('tryWalk - walkForbidden: '+this.getName());
       this.raiseEntityEvent('walkForbidden',{target:targetTile});
     }
     return false;
@@ -70,8 +128,8 @@ Game.EntityMixin.Chronicle = {
       deathMessage:''
     },
     listeners: {
-      'tookTurn': function(evtData) {
-        this.trackTurn();
+      'actionDone': function(evtData) {
+        this.trackTurnCount();
       },
       'madeKill': function(evtData) {
         //console.log('chronicle kill');
@@ -82,7 +140,7 @@ Game.EntityMixin.Chronicle = {
       }
     }
   },
-  trackTurn: function () {
+  trackTurnCount: function () {
     this.attr._Chronicle_attr.turnCounter++;
   },
   getTurns: function () {
@@ -218,5 +276,49 @@ Game.EntityMixin.MeleeAttacker = {
   },
   getAttackPower: function () {
     return this.attr._MeleeAttacker_attr.attackPower;
+  }
+};
+
+//#############################################################################
+// ENTITY ACTORS / AI
+
+Game.EntityMixin.WanderActor = {
+  META: {
+    mixinName: 'WanderActor',
+    mixinGroup: 'Actor',
+    stateNamespace: '_WanderActor_attr',
+    stateModel:  {
+      baseActionDuration: 1000,
+      currentActionDuration: 1000
+    },
+    init: function (template) {
+      Game.Scheduler.add(this,true, this.getBaseActionDuration());
+    }
+  },
+  getBaseActionDuration: function () {
+    return this.attr._WanderActor_attr.baseActionDuration;
+  },
+  setBaseActionDuration: function (n) {
+    this.attr._WanderActor_attr.baseActionDuration = n;
+  },
+  getCurrentActionDuration: function () {
+    return this.attr._WanderActor_attr.currentActionDuration;
+  },
+  setCurrentActionDuration: function (n) {
+    this.attr._WanderActor_attr.currentActionDuration = n;
+  },
+  getMoveDeltas: function () {
+    return Game.util.positionsAdjacentTo({x:0,y:0}).random();
+  },
+  act: function () {
+    console.log('wander for '+this.getName());
+    var moveDeltas = this.getMoveDeltas();
+    if (this.hasMixin('Walker')) { // NOTE: this pattern suggests that maybe tryWalk shoudl be converted to an event
+      console.log('trying to walk to '+moveDeltas.x+','+moveDeltas.y);
+      this.tryWalk(this.getMap(),moveDeltas.x, moveDeltas.y);
+    }
+    Game.Scheduler.setDuration(this.getCurrentActionDuration());
+    this.setCurrentActionDuration(this.getBaseActionDuration());
+    this.raiseEntityEvent('actionDone');
   }
 };

@@ -5,7 +5,7 @@ Game.EntityGenerator.learn({
   chr:'\u2744',
   fg:'#dda',
   maxHp: 10,
-  mixins: [Game.EntityMixin.WalkerCorporeal,Game.EntityMixin.HitPoints,Game.EntityMixin.Chronicle,Game.EntityMixin.Hunger,Game.EntityMixin.MeleeAttacker,Game.EntityMixin.PlayerMessager]
+  mixins: [Game.EntityMixin.PlayerActor,Game.EntityMixin.PlayerMessager,Game.EntityMixin.WalkerCorporeal,Game.EntityMixin.HitPoints,Game.EntityMixin.Chronicle,Game.EntityMixin.MeleeAttacker,Game.EntityMixin.Hunger]
 });
 
 Game.EntityGenerator.learn({
@@ -14,4 +14,12 @@ Game.EntityGenerator.learn({
   fg:'#6b6',
   maxHp: 1,
   mixins: [Game.EntityMixin.HitPoints]
+});
+
+Game.EntityGenerator.learn({
+  name: 'newt',
+  chr:'~',
+  fg:'#f98',
+  maxHp: 2,
+  mixins: [Game.EntityMixin.HitPoints, Game.EntityMixin.WanderActor, Game.EntityMixin.WalkerCorporeal]
 });

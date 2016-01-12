@@ -45,10 +45,19 @@ var Game = {
 
   DATASTORE: {},
 
+  Scheduler: null,
+  TimeEngine: null,
+
   init: function () {
     this._game = this;
     this.TRANSIENT_RNG = ROT.RNG.clone();
     Game.setRandomSeed(5 + Math.floor(this.TRANSIENT_RNG.getUniform()*100000));
+
+    // NOTE: single, central timing system for now - might have to refactor this later to deal with mutliple map stuff
+    Game.Scheduler = new ROT.Scheduler.Action();
+    Game.TimeEngine = new ROT.Engine(Game.Scheduler);
+    Game.TimeEngine.start();
+    Game.TimeEngine.lock();
 
     console.log("WSRL Live Initialization");
     // this.DISPLAYS.main.o = new ROT.Display({width:this.DISPLAYS.main.w, height:this.DISPLAYS.main.h});

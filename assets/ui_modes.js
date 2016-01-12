@@ -64,6 +64,9 @@ Game.UIMode.gamePersistence = {
       var json_state_data = window.localStorage.getItem(Game._PERSISTENCE_NAMESPACE);
       var state_data = JSON.parse(json_state_data);
 
+      Game.DATASTORE = {};
+      Game.DATASTORE.MAP = {};
+      Game.DATASTORE.ENTITY = {};
       //console.log('state data: ');
       //console.dir(state_data);
 
@@ -81,12 +84,29 @@ Game.UIMode.gamePersistence = {
         }
       }
 
+      ROT.RNG.getUniform(); // once the map is regenerated cycle the RNG so we're getting new data for entity generation
+
+      // console.log('entity state data:');
+      // console.dir(JSON.parse(JSON.stringify(state_data.ENTITY)));
+
       // entities
       for (var entityId in state_data.ENTITY) {
         if (state_data.ENTITY.hasOwnProperty(entityId)) {
           var entAttr = JSON.parse(state_data.ENTITY[entityId]);
-          Game.DATASTORE.ENTITY[entityId] = Game.EntityGenerator.create(entAttr._generator_template_key);
+          // console.log('pre');
+          // console.dir(JSON.parse(JSON.stringify(Game.DATASTORE.ENTITY)));
+          var newE = Game.EntityGenerator.create(entAttr._generator_template_key);
+          // console.log('newE is '+newE.getId());
+          var idToPurge = newE.getId();
+          // console.dir(JSON.parse(JSON.stringify(newE.attr)));
+          Game.DATASTORE.ENTITY[entityId] = newE;
+          // console.log('mid');
+          // console.dir(JSON.parse(JSON.stringify(Game.DATASTORE.ENTITY)));
           Game.DATASTORE.ENTITY[entityId].fromJSON(state_data.ENTITY[entityId]);
+          Game.DATASTORE.ENTITY[idToPurge]=undefined;
+          // console.log('post');
+          // console.dir(JSON.parse(JSON.stringify(Game.DATASTORE.ENTITY)));
+          // console.log('-----------');
         }
       }
 
@@ -106,6 +126,9 @@ Game.UIMode.gamePersistence = {
      }
    },
    newGame: function () {
+     Game.DATASTORE = {};
+     Game.DATASTORE.MAP = {};
+     Game.DATASTORE.ENTITY = {};
      Game.setRandomSeed(5 + Math.floor(Game.TRANSIENT_RNG.getUniform()*100000));
      Game.UIMode.gamePlay.setupNewGame();
      Game.switchUiMode(Game.UIMode.gamePlay);
@@ -173,9 +196,11 @@ Game.UIMode.gamePlay = {
       this.setCameraToAvatar();
     }
     Game.refresh();
+    Game.TimeEngine.unlock();
   },
   exit: function () {
     Game.refresh();
+    Game.TimeEngine.lock();
   },
   getMap: function () {
     return Game.DATASTORE.MAP[this.attr._mapId];
@@ -196,52 +221,61 @@ Game.UIMode.gamePlay = {
     this.attr._cameraX = Math.min(Math.max(0,sx),this.getMap().getWidth());
     this.attr._cameraY = Math.min(Math.max(0,sy),this.getMap().getHeight());
     Game.refresh();
+    Game.renderMain();
   },
   setCameraToAvatar: function () {
     this.setCamera(this.getAvatar().getX(),this.getAvatar().getY());
   },
   handleInput: function (eventType,evt) {
-    var pressedKey = String.fromCharCode(evt.charCode);
-
-    if(eventType == 'keypress' || eventType == 'keydown'){
-      //Game.Message.sendMessage("you pressed the '"+String.fromCharCode(evt.charCode)+"' key");
-      if (eventType == "keypress" && evt.keyCode == 13) {
+    var tookTurn = false;
+    if (eventType == 'keypress') {
+      // NOTE: a lot of repeated call below - think about where/how that might be done differently...?
+      var pressedKey = String.fromCharCode(evt.charCode);
+      if (evt.keyCode == 13) {
         Game.switchUiMode(Game.UIMode.gameWin);
-        return;
-      } else if (eventType == "keydown" && evt.keyCode == 27) {
-        Game.switchUiMode(Game.UIMode.gameLose);
-        return;
-      } else if (eventType == "keydown" && evt.keyCode == 187) {
-        Game.switchUiMode(Game.UIMode.gamePersistence);
         return;
       } else if (pressedKey == '1') {
         Game.Message.ageMessages();
-        this.moveAvatar(-1,1);
+        tookTurn = this.moveAvatar(-1,1);
       } else if (pressedKey == '2') {
         Game.Message.ageMessages();
-        this.moveAvatar(0,1);
+        tookTurn = this.moveAvatar(0,1);
       } else if (pressedKey == '3') {
         Game.Message.ageMessages();
-        this.moveAvatar(1,1);
+        tookTurn = this.moveAvatar(1,1);
       } else if (pressedKey == '4') {
         Game.Message.ageMessages();
-        this.moveAvatar(-1,0);
+        tookTurn = this.moveAvatar(-1,0);
       } else if (pressedKey == '5') {
         // do nothing / stay still
         Game.renderMessage();
       } else if (pressedKey == '6') {
         Game.Message.ageMessages();
-        this.moveAvatar(1,0);
+        tookTurn = this.moveAvatar(1,0);
       } else if (pressedKey == '7') {
         Game.Message.ageMessages();
-        this.moveAvatar(-1,-1);
+        tookTurn = this.moveAvatar(-1,-1);
       } else if (pressedKey == '8') {
         Game.Message.ageMessages();
-        this.moveAvatar(0,-1);
+        tookTurn = this.moveAvatar(0,-1);
       } else if (pressedKey == '9') {
         Game.Message.ageMessages();
-        this.moveAvatar(1,-1);
+        tookTurn = this.moveAvatar(1,-1);
       }
+    } else if (eventType == 'keydown') {
+      if (evt.keyCode == 27) {
+        Game.switchUiMode(Game.UIMode.gameLose);
+        return;
+      } else if (evt.keyCode == 187) {
+        Game.switchUiMode(Game.UIMode.gamePersistence);
+        return;
+      }
+    }
+
+    if (tookTurn) {
+      this.getAvatar().raiseEntityEvent('actionDone');
+      Game.Message.ageMessages();
+      return true;
     }
   },
   renderOnMain: function (display) {
@@ -270,7 +304,9 @@ Game.UIMode.gamePlay = {
   moveAvatar: function (dx,dy) {
     if (this.getAvatar().tryWalk(this.getMap(),dx,dy)) {
       this.setCameraToAvatar();
+      return true;
     }
+    return false;
   },
   setupNewGame: function () {
     Game.Message.clearMessages();
@@ -281,8 +317,9 @@ Game.UIMode.gamePlay = {
     this.setCameraToAvatar();
 
     // dev code - just add some entities to the map
-    for (var ecount = 0; ecount < 80; ecount++) {
+    for (var ecount = 0; ecount < 1; ecount++) {
       this.getMap().addEntity(Game.EntityGenerator.create('moss'),this.getMap().getRandomWalkableLocation());
+      this.getMap().addEntity(Game.EntityGenerator.create('newt'),this.getMap().getRandomWalkableLocation());
     }
   },
   toJSON: function() {
