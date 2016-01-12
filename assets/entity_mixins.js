@@ -2,6 +2,33 @@ Game.EntityMixin = {};
 
 // Mixins have a META property is is info about/for the mixin itself and then all other properties. The META property is NOT copied into objects for which this mixin is used - all other properies ARE copied in.
 
+Game.EntityMixin.PlayerMessager = {
+  META: {
+    mixinName: 'PlayerMessager',
+    mixinGroup: 'PlayerMessager',
+    listeners: {
+      'walkForbidden': function(evtData) {
+        Game.Message.sendMessage('you can\'t walk into the '+evtData.target.getName());
+        Game.renderMessage();
+      },
+      'dealtDamage': function(evtData) {
+        Game.Message.sendMessage('you hit the '+evtData.damagee.getName()+' for '+evtData.damageAmount);
+      },
+      'madeKill': function(evtData) {
+        Game.Message.sendMessage('you killed the '+evtData.entKilled.getName());
+      },
+      'damagedBy': function(evtData) {
+        Game.Message.sendMessage('the '+evtData.damager.getName()+' hit you for '+evtData.damageAmount);
+      },
+      'killed': function(evtData) {
+        Game.Message.sendMessage('you were killed by the '+evtData.killedBy.getName());
+        Game.renderMessage();
+      }
+    }
+  }
+  //    Game.Message.send(msg);
+};
+
 Game.EntityMixin.WalkerCorporeal = {
   META: {
     mixinName: 'WalkerCorporeal',
@@ -16,7 +43,8 @@ Game.EntityMixin.WalkerCorporeal = {
       this.raiseEntityEvent('tookTurn');
       return true;
     }
-    if (map.getTile(targetX,targetY).isWalkable()) {
+    var targetTile = map.getTile(targetX,targetY);
+    if (targetTile.isWalkable()) {
       this.setPos(targetX,targetY);
       var myMap = this.getMap();
       if (myMap) {
@@ -24,6 +52,8 @@ Game.EntityMixin.WalkerCorporeal = {
       }
       this.raiseEntityEvent('tookTurn');
       return true;
+    } else {
+      this.raiseEntityEvent('walkForbidden',{target:targetTile});
     }
     return false;
   }
@@ -44,7 +74,7 @@ Game.EntityMixin.Chronicle = {
         this.trackTurn();
       },
       'madeKill': function(evtData) {
-        console.log('chronicle kill');
+        //console.log('chronicle kill');
         this.addKill(evtData.entKilled);
       },
       'killed': function(evtData) {
@@ -69,7 +99,7 @@ Game.EntityMixin.Chronicle = {
   },
   addKill: function (entKilled) {
     var entName = entKilled.getName();
-    console.log('chronicle kill of '+entName);
+    //console.log('chronicle kill of '+entName);
     if (this.attr._Chronicle_attr.killLog[entName]) {
       this.attr._Chronicle_attr.killLog[entName]++;
     } else {
@@ -93,7 +123,7 @@ Game.EntityMixin.HitPoints = {
     },
     listeners: {
       'attacked': function(evtData) {
-        console.log('HitPoints attacked');
+        //console.log('HitPoints attacked');
         this.takeHits(evtData.attackPower);
         this.raiseEntityEvent('damagedBy',{damager:evtData.attacker,damageAmount:evtData.attackPower});
         evtData.attacker.raiseEntityEvent('dealtDamage',{damagee:this,damageAmount:evtData.attackPower});
@@ -103,7 +133,7 @@ Game.EntityMixin.HitPoints = {
         }
       },
       'killed': function(evtData) {
-        console.log('HitPoints killed');
+        //console.log('HitPoints killed');
         this.destroy();
       }
     }
@@ -181,7 +211,7 @@ Game.EntityMixin.MeleeAttacker = {
     },
     listeners: {
       'bumpEntity': function(evtData) {
-        console.log('MeleeAttacker bumpEntity');
+        //console.log('MeleeAttacker bumpEntity');
         evtData.recipient.raiseEntityEvent('attacked',{attacker:evtData.actor,attackPower:this.getAttackPower()});
       }
     }

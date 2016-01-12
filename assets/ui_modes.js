@@ -44,13 +44,19 @@ Game.UIMode.gamePersistence = {
     console.log("TODO: check whether a game is in progress before offering restore");
   },
   handleInput: function(eventType, evt){
-    var evtChar = String.fromCharCode(evt.charCode);
-    if (evt.keyCode == ROT.VK_S) { // ignore the various modding keys - control, shift, etc.
-      this.saveGame();
-    } else if (evt.keyCode == ROT.VK_L) {
-      this.restoreGame();
-    } else if (evt.keyCode == ROT.VK_N) {
-      this.newGame();
+    if (eventType == 'keypress'){
+      var evtChar = String.fromCharCode(evt.charCode);
+      if (evtChar == 's') { // ignore the various modding keys - control, shift, etc.
+        this.saveGame();
+      } else if (evtChar == 'l') {
+        this.restoreGame();
+      } else if (evtChar == 'n') {
+        this.newGame();
+      }
+    } else if (eventType == 'keydown'){
+      if (evt.keyCode == 27) { // 'Escape'
+        Game.switchUiMode(Game.UIMode.gamePlay);
+      }
     }
   },
   restoreGame: function () {
@@ -84,8 +90,9 @@ Game.UIMode.gamePersistence = {
         }
       }
 
-      // game play
+      // game play et al
       Game.UIMode.gamePlay.attr = state_data.GAME_PLAY;
+      Game.Message.attr = state_data.MESSAGES;
 
       Game.switchUiMode(Game.UIMode.gamePlay);
     }
@@ -93,6 +100,7 @@ Game.UIMode.gamePersistence = {
    saveGame: function () {
      if (this.localStorageAvailable()) {
        Game.DATASTORE.GAME_PLAY = Game.UIMode.gamePlay.attr;
+       Game.DATASTORE.MESSAGES = Game.Message.attr;
        window.localStorage.setItem(Game._PERSISTENCE_NAMESPACE, JSON.stringify(Game.DATASTORE));
        Game.switchUiMode(Game.UIMode.gamePlay);
      }
@@ -160,7 +168,7 @@ Game.UIMode.gamePlay = {
   JSON_KEY: 'uiMode_gamePlay',
   enter: function () {
     //console.log('game playing');
-    Game.Message.clearMessages();
+    //Game.Message.clearMessages();
     if (this.attr._avatarId) {
       this.setCameraToAvatar();
     }
@@ -194,36 +202,46 @@ Game.UIMode.gamePlay = {
   },
   handleInput: function (eventType,evt) {
     var pressedKey = String.fromCharCode(evt.charCode);
-    console.log("Game.UIMode.gamePlay handleInput");
-    console.log(eventType);
-    console.dir(evt);
-    if (eventType == "keypress" && evt.keyCode == 13) {
-      Game.switchUiMode(Game.UIMode.gameWin);
-      return;
-    } else if (eventType == "keydown" && evt.keyCode == 27) {
-      Game.switchUiMode(Game.UIMode.gameLose);
-      return;
-    } else if (eventType == "keydown" && evt.keyCode == 187) {
-      Game.switchUiMode(Game.UIMode.gamePersistence);
-      return;
-    } else if (pressedKey == '1') {
-      this.moveAvatar(-1,1);
-    } else if (pressedKey == '2') {
-      this.moveAvatar(0,1);
-    } else if (pressedKey == '3') {
-      this.moveAvatar(1,1);
-    } else if (pressedKey == '4') {
-      this.moveAvatar(-1,0);
-    } else if (pressedKey == '5') {
-      // do nothing / stay still
-    } else if (pressedKey == '6') {
-      this.moveAvatar(1,0);
-    } else if (pressedKey == '7') {
-      this.moveAvatar(-1,-1);
-    } else if (pressedKey == '8') {
-      this.moveAvatar(0,-1);
-    } else if (pressedKey == '9') {
-      this.moveAvatar(1,-1);
+
+    if(eventType == 'keypress' || eventType == 'keydown'){
+      //Game.Message.sendMessage("you pressed the '"+String.fromCharCode(evt.charCode)+"' key");
+      if (eventType == "keypress" && evt.keyCode == 13) {
+        Game.switchUiMode(Game.UIMode.gameWin);
+        return;
+      } else if (eventType == "keydown" && evt.keyCode == 27) {
+        Game.switchUiMode(Game.UIMode.gameLose);
+        return;
+      } else if (eventType == "keydown" && evt.keyCode == 187) {
+        Game.switchUiMode(Game.UIMode.gamePersistence);
+        return;
+      } else if (pressedKey == '1') {
+        Game.Message.ageMessages();
+        this.moveAvatar(-1,1);
+      } else if (pressedKey == '2') {
+        Game.Message.ageMessages();
+        this.moveAvatar(0,1);
+      } else if (pressedKey == '3') {
+        Game.Message.ageMessages();
+        this.moveAvatar(1,1);
+      } else if (pressedKey == '4') {
+        Game.Message.ageMessages();
+        this.moveAvatar(-1,0);
+      } else if (pressedKey == '5') {
+        // do nothing / stay still
+        Game.renderMessage();
+      } else if (pressedKey == '6') {
+        Game.Message.ageMessages();
+        this.moveAvatar(1,0);
+      } else if (pressedKey == '7') {
+        Game.Message.ageMessages();
+        this.moveAvatar(-1,-1);
+      } else if (pressedKey == '8') {
+        Game.Message.ageMessages();
+        this.moveAvatar(0,-1);
+      } else if (pressedKey == '9') {
+        Game.Message.ageMessages();
+        this.moveAvatar(1,-1);
+      }
     }
   },
   renderOnMain: function (display) {
@@ -255,6 +273,7 @@ Game.UIMode.gamePlay = {
     }
   },
   setupNewGame: function () {
+    Game.Message.clearMessages();
     this.setMap(new Game.Map('caves1'));
     this.setAvatar(Game.EntityGenerator.create('avatar'));
 
