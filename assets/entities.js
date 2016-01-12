@@ -5,7 +5,7 @@ Game.EntityGenerator.learn({
   chr:'\u2744',
   fg:'#dda',
   maxHp: 10,
-  mixins: [Game.EntityMixin.PlayerActor,Game.EntityMixin.PlayerMessager,Game.EntityMixin.WalkerCorporeal,Game.EntityMixin.HitPoints,Game.EntityMixin.Chronicle,Game.EntityMixin.MeleeAttacker,Game.EntityMixin.Hunger]
+  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "HitPoints", "Chronicle", "Hunger", "MeleeAttacker"]
 });
 
 Game.EntityGenerator.learn({
@@ -13,7 +13,7 @@ Game.EntityGenerator.learn({
   chr:'%',
   fg:'#6b6',
   maxHp: 1,
-  mixins: [Game.EntityMixin.HitPoints]
+  mixins: ["HitPoints"]
 });
 
 Game.EntityGenerator.learn({
@@ -21,5 +21,5 @@ Game.EntityGenerator.learn({
   chr:'~',
   fg:'#f98',
   maxHp: 2,
-  mixins: [Game.EntityMixin.HitPoints, Game.EntityMixin.WanderActor, Game.EntityMixin.WalkerCorporeal]
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal"]
 });
