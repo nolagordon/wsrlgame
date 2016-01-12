@@ -114,6 +114,6 @@ Game.Map.prototype.toJSON = function () {
   return json;
 };
 
-Game.Map.prototype.fromJSON = function () {
+Game.Map.prototype.fromJSON = function (json) {
   Game.UIMode.gamePersistence.BASE_fromJSON.call(this,json);
 };

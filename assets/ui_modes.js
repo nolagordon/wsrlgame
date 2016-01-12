@@ -96,7 +96,7 @@ Game.UIMode.gamePersistence = {
      if (this.localStorageAvailable()) {
        //window.localStorage.setItem(Game._PERSISTENCE_NAMESPACE, JSON.stringify(Game._game)); // .toJSON()
        Game.DATASTORE.GAME_PLAY = Game.UIMode.gamePlay.attr;
-       window.localStorage.setItem(Game._PERSISTANCE_NAMESPACE, JSON.stringify(Game.DATASTORE)); // .toJSON()
+       window.localStorage.setItem(Game._PERSISTENCE_NAMESPACE, JSON.stringify(Game.DATASTORE)); // .toJSON()
        Game.switchUiMode(Game.UIMode.gamePlay);
      }
    },
