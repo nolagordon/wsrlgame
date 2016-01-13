@@ -14,3 +14,7 @@ inventory
 9. stores
 progression of difficulty/level
 story
+
+TODO:
+  1. More checks for game persistence (i.e. don't want player to try to resume
+  a game if they don't have one currently)

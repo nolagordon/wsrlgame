@@ -66,6 +66,8 @@ var Game = {
     Game.switchUiMode(Game.UIMode.gameStart);
     this.renderAll();
 
+    Game.KeyBinding.useKeyBinding();
+
     var game = this;
     var bindEventToScreen = function(event) {
       window.addEventListener(event, function(e) {
