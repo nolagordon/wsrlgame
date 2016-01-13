@@ -66,23 +66,19 @@ var Game = {
     Game.switchUiMode(Game.UIMode.gameStart);
     this.renderAll();
 
-    Game.KeyBinding.useKeyBinding();
-
     var game = this;
-    var bindEventToScreen = function(event) {
+    var bindEventToUiMode = function(event) {
       window.addEventListener(event, function(e) {
-        // When an event is received, send it to the
-        // screen if there is one
+        // send event to the ui mode if there is one
         if (game._curUiMode !== null) {
-          // Send the event type and data to the screen
           game._curUiMode.handleInput(event, e);
         }
       });
     };
     // Bind keyboard input events
-    bindEventToScreen('keypress');
-    bindEventToScreen('keydown');
-    //        bindEventToScreen('keyup');
+    bindEventToUiMode('keypress');
+    bindEventToUiMode('keydown');
+    // bindEventToUiMode('keyup');
   },
   initializeTimingEngine: function () {
     // NOTE: single, central timing system for now - might have to refactor this later to deal with mutliple map stuff
