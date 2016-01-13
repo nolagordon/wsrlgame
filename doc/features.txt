@@ -1,0 +1,16 @@
+Eventual Feature List
+  1. Basic setup of a roguelike game (i.e. what's included in the demo)
+  2. Different ice cream flavors and ice creatures which get stronger
+     as the player progresses through the game
+  3. Multiple floors
+  4. Status ailments (brainfreeze, allergic reaction, frostbite etc.)
+  5. Weapons
+  6. Healing items
+
+Next Milestone
+  1. Finish the steps in the demo
+  2. Focus on implementing multiple levels that increase in difficulty
+
+Current Work Plan
+  Finish working through the demo and branch out after basic features
+have been successfully implemented.

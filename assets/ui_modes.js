@@ -67,8 +67,7 @@ Game.UIMode.gamePersistence = {
       Game.DATASTORE = {};
       Game.DATASTORE.MAP = {};
       Game.DATASTORE.ENTITY = {};
-      //console.log('state data: ');
-      //console.dir(state_data);
+      Game.initializeTimingEngine();
 
       // game level stuff
       Game.setRandomSeed(state_data[this.RANDOM_SEED_KEY]);
@@ -129,6 +128,7 @@ Game.UIMode.gamePersistence = {
      Game.DATASTORE = {};
      Game.DATASTORE.MAP = {};
      Game.DATASTORE.ENTITY = {};
+     Game.initializeTimingEngine();
      Game.setRandomSeed(5 + Math.floor(Game.TRANSIENT_RNG.getUniform()*100000));
      Game.UIMode.gamePlay.setupNewGame();
      Game.switchUiMode(Game.UIMode.gamePlay);
@@ -190,13 +190,16 @@ Game.UIMode.gamePlay = {
   },
   JSON_KEY: 'uiMode_gamePlay',
   enter: function () {
-    //console.log('game playing');
-    //Game.Message.clearMessages();
+    // console.log('game playing');
+    // console.log('engine lock state is '+Game.TimeEngine._lock);
     if (this.attr._avatarId) {
       this.setCameraToAvatar();
     }
-    Game.refresh();
+
     Game.TimeEngine.unlock();
+    Game.refresh();
+    // console.log('end enter game play; engine lock state is '+Game.TimeEngine._lock);
+    //this.getAvatar().raiseEntityEvent('actionDone');
   },
   exit: function () {
     Game.refresh();
@@ -220,8 +223,8 @@ Game.UIMode.gamePlay = {
   setCamera: function (sx,sy) {
     this.attr._cameraX = Math.min(Math.max(0,sx),this.getMap().getWidth());
     this.attr._cameraY = Math.min(Math.max(0,sy),this.getMap().getHeight());
-    Game.refresh();
-    Game.renderMain();
+    //Game.refresh();
+    //Game.renderMain();
   },
   setCameraToAvatar: function () {
     this.setCamera(this.getAvatar().getX(),this.getAvatar().getY());

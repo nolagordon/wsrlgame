@@ -1,0 +1,17 @@
+Frozen: The Game
+
+Game Summary
+  You work part-time in an ice cream factory. One day during your shift, the nearby
+nuclear plant explodes, and the resulting radiation turns you into a snowflake
+and the ice cream into living, breathing monsters. Unfortunately, you work on the
+top floor, and you must reach the exit on the ground level to escape (and hopefully
+get to a hospital to cure your radiation-related diseases).
+  To win the game, you need to escape from the factory. You lose if your HP ever
+hits 0. When playing the game, you move around the factory and run into enemies
+to kill them.
+
+Inspiration
+  Our main inspiration is from ADOM. We found it really fun how eating different
+monster corpses had different effects, so we want to implement a similar (somewhat
+less gruesome) feature where the main player is allergic to different things
+and may experience allergic reactions when eating certain ice cream flavors.

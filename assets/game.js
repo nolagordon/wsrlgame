@@ -53,11 +53,7 @@ var Game = {
     this.TRANSIENT_RNG = ROT.RNG.clone();
     Game.setRandomSeed(5 + Math.floor(this.TRANSIENT_RNG.getUniform()*100000));
 
-    // NOTE: single, central timing system for now - might have to refactor this later to deal with mutliple map stuff
-    Game.Scheduler = new ROT.Scheduler.Action();
-    Game.TimeEngine = new ROT.Engine(Game.Scheduler);
-    Game.TimeEngine.start();
-    Game.TimeEngine.lock();
+    //this.initializeTimingEngine();
 
     console.log("WSRL Live Initialization");
     // this.DISPLAYS.main.o = new ROT.Display({width:this.DISPLAYS.main.w, height:this.DISPLAYS.main.h});
@@ -67,18 +63,29 @@ var Game = {
       }
     }
 
-    var bindEventToScreen = function(eventType) {
-      window.addEventListener(eventType, function(evt) {
-        Game.eventHandler(eventType, evt);
-      });
-     };
-     // Bind keyboard input events
-     bindEventToScreen('keypress');
-     bindEventToScreen('keydown');
-     //        bindEventToScreen('keyup');
-
     Game.switchUiMode(Game.UIMode.gameStart);
     this.renderAll();
+
+    var game = this;
+    var bindEventToScreen = function(event) {
+      window.addEventListener(event, function(e) {
+        // When an event is received, send it to the
+        // screen if there is one
+        if (game._curUiMode !== null) {
+          // Send the event type and data to the screen
+          game._curUiMode.handleInput(event, e);
+        }
+      });
+    };
+    // Bind keyboard input events
+    bindEventToScreen('keypress');
+    bindEventToScreen('keydown');
+    //        bindEventToScreen('keyup');
+  },
+  initializeTimingEngine: function () {
+    // NOTE: single, central timing system for now - might have to refactor this later to deal with mutliple map stuff
+    Game.Scheduler = new ROT.Scheduler.Action();
+    Game.TimeEngine = new ROT.Engine(Game.Scheduler);
   },
   getRandomSeed: function () {
     return this._randomSeed;

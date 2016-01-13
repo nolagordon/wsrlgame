@@ -1,0 +1,5 @@
+1. Puzzles
+2. More plot development (maybe via saving coworkers)
+3. Companions
+4. More intricate stats system
+5. Enemies can merge to form stronger enemies
