@@ -3,6 +3,9 @@ Game.UIMode.DEFAULT_COLOR_FG = '#fff';
 Game.UIMode.DEFAULT_COLOR_BG = '#000';
 Game.UIMode.DEFAULT_COLOR_STR = '%c{'+Game.UIMode.DEFAULT_COLOR_FG+'}%b{'+Game.UIMode.DEFAULT_COLOR_BG+'}';
 
+//#############################################################################
+//#############################################################################
+
 Game.UIMode.gameStart = {
   enter: function () {
     //console.log('game starting');
@@ -20,14 +23,13 @@ Game.UIMode.gameStart = {
     }
   },
   renderOnMain: function (display) {
-    var fg = Game.UIMode.DEFAULT_COLOR_FG;
-    var bg = Game.UIMode.DEFAULT_COLOR_BG;
-    console.log("Game.UIMode.gameStart renderOnMain");
-    display.clear();
-    display.drawText(4,4,"Welcome to WSRL",fg,bg);
-    display.drawText(4,6,"press any key to continue",fg,bg);
+    display.drawText(1,1,Game.UIMode.DEFAULT_COLOR_STR+"game start");
+    display.drawText(1,3,Game.UIMode.DEFAULT_COLOR_STR+"press any key to continue");
   }
 };
+
+//#############################################################################
+//#############################################################################
 
 Game.UIMode.gamePersistence = {
   RANDOM_SEED_KEY: 'gameRandomSeed',
@@ -42,13 +44,10 @@ Game.UIMode.gamePersistence = {
     Game.refresh();
   },
   renderOnMain: function (display) {
-    var fg = Game.UIMode.DEFAULT_COLOR_FG;
-    var bg = Game.UIMode.DEFAULT_COLOR_BG;
-    display.clear();
-    display.drawText(1,3,"press 's' to save the current game, 'l' to load the saved game, or 'n' start a new one",fg,bg);
-    display.drawText(1,4,"press [Esc] to resume playing",fg,bg);
-    console.log("TODO: check whether local storage has a game before offering restore");
-    console.log("TODO: check whether a game is in progress before offering restore");
+    display.drawText(3,3,Game.UIMode.DEFAULT_COLOR_STR+"press 's' to save the current game, 'l' to load the saved game, or 'n' start a new one",70);
+    //display.drawText(1,4,"press [Esc] to resume playing",fg,bg);
+    //console.log("TODO: check whether local storage has a game before offering restore");
+    //console.log("TODO: check whether a game is in progress before offering restore");
   },
   handleInput: function(eventType, evt){
     // console.log(eventType);
@@ -127,6 +126,7 @@ Game.UIMode.gamePersistence = {
 
       Game.Message.sendMessage('game loaded');
       Game.switchUiMode(Game.UIMode.gamePlay);
+      Game.KeyBinding.informPlayer();
     }
    },
    saveGame: function () {
@@ -187,12 +187,57 @@ Game.UIMode.gamePersistence = {
    }
 };
 
+//#############################################################################
+//#############################################################################
+
+Game.UIMode.gameWin = {
+  enter: function () {
+    console.log('game winning');
+  },
+  exit: function () {
+  },
+  render: function (display) {
+    display.drawText(1,1,Game.UIMode.DEFAULT_COLOR_STR+"You WON!!!!");
+  },
+  handleInput: function (inputType,inputData) {
+    // console.log('gameStart inputType:');
+    // console.dir(inputType);
+    // console.log('gameStart inputData:');
+    // console.dir(inputData);
+    Game.Message.clear();
+  }
+};
+
+//#############################################################################
+//#############################################################################
+
+Game.UIMode.gameLose = {
+  enter: function () {
+    console.log('game losing');
+  },
+  exit: function () {
+  },
+  render: function (display) {
+    display.drawText(1,1,Game.UIMode.DEFAULT_COLOR_STR+"You lost :(");
+  },
+  handleInput: function (inputType,inputData) {
+    // console.log('gameStart inputType:');
+    // console.dir(inputType);
+    // console.log('gameStart inputData:');
+    // console.dir(inputData);
+    Game.Message.clear();
+  }
+};
+
+//#############################################################################
+//#############################################################################
+
 Game.UIMode.gamePlay = {
   attr: {
     _mapId: '',
+    _avatarId: '',
     _cameraX: 100,
-    _cameraY: 100,
-    _avatarId: ''
+    _cameraY: 100
   },
   JSON_KEY: 'uiMode_gamePlay',
   enter: function () {
@@ -285,13 +330,11 @@ Game.UIMode.gamePlay = {
     this.getMap().renderOn(display,this.attr._cameraX,this.attr._cameraY);
   },
   renderAvatarInfo: function (display) {
-    var fg = Game.UIMode.DEFAULT_COLOR_FG;
-    var bg = Game.UIMode.DEFAULT_COLOR_BG;
-    display.drawText(1,2,"avatar x: "+this.getAvatar().getX(),fg,bg); // DEV
-    display.drawText(1,3,"avatar y: "+this.getAvatar().getY(),fg,bg); // DEV
-    display.drawText(1,4,"turns: "+this.getAvatar().getTurns(),fg,bg);
-    display.drawText(1,5,"HP: "+this.getAvatar().getCurHp(),fg,bg);
-    display.drawText(1,6,"hunger: "+this.getAvatar().statusToString(),fg,bg);
+    display.drawText(1,2,Game.UIMode.DEFAULT_COLOR_STR+"avatar x: "+this.getAvatar().getX()); // DEV
+    display.drawText(1,3,Game.UIMode.DEFAULT_COLOR_STR+"avatar y: "+this.getAvatar().getY()); // DEV
+    display.drawText(1,4,Game.UIMode.DEFAULT_COLOR_STR+"turns: "+this.getAvatar().getTurns());
+    display.drawText(1,5,Game.UIMode.DEFAULT_COLOR_STR+"HP: "+this.getAvatar().getCurHp());
+    display.drawText(1,6,Game.UIMode.DEFAULT_COLOR_STR+"hunger: "+this.getAvatar().statusToString());
   },
   moveAvatar: function (dx,dy) {
     if (this.getAvatar().tryWalk(this.getMap(),dx,dy)) {
@@ -322,40 +365,54 @@ Game.UIMode.gamePlay = {
   }
 };
 
-Game.UIMode.gameLose = {
-  enter: function () {
-    console.log("Game.UIMode.gameLose enter");
-  },
-  exit: function () {
-    console.log("Game.UIMode.gameLose exit");
-  },
-  handleInput: function () {
-    console.log("Game.UIMode.gameLose handleInput");
-  },
-  renderOnMain: function (display) {
-    var fg = Game.UIMode.DEFAULT_COLOR_FG;
-    var bg = Game.UIMode.DEFAULT_COLOR_BG;
-    console.log("Game.UIMode.gameLose renderOnMain");
-    display.clear();
-    display.drawText(4,4,"You lost!",fg,bg);
-  }
-};
+//#############################################################################
+//#############################################################################
 
-Game.UIMode.gameWin = {
+Game.UIMode.textReading = {
+  _storedKeyBinding: '',
+  _text: '',
   enter: function () {
-    console.log("Game.UIMode.gameWin enter");
+    this._storedKeyBinding = Game.KeyBinding.getKeyBinding();
+    Game.KeyBinding.setKeyBinding('textReading');
+    Game.refresh();
+    //console.log('game persistence');
   },
   exit: function () {
-    console.log("Game.UIMode.gameWin exit");
+    Game.KeyBinding.setKeyBinding(this._storedKeyBinding);
+    Game.refresh();
   },
   handleInput: function () {
-    console.log("Game.UIMode.gameWin handleInput");
+    var actionBinding = Game.KeyBinding.getInputBinding(inputType,inputData);
+    // console.log('action binding is');
+    // console.dir(actionBinding);
+    // console.log('----------');
+    if (! actionBinding) {
+      return false;
+    }
+/*
+  if        (actionBinding.actionKey == 'PERSISTENCE_SAVE') {
+ +      this.saveGame();
+ +    } else if (actionBinding.actionKey == 'PERSISTENCE_LOAD') {
+ +      this.restoreGame();
+ +    } else if (actionBinding.actionKey == 'PERSISTENCE_NEW') {
+ +      this.newGame();
+ +    } else if (actionBinding.actionKey == 'CANCEL') {
+ +      Game.switchUiMode(Game.UIMode.gamePlay);
+ +    }
+ +    */
+    return false;
   },
   renderOnMain: function (display) {
-    var fg = Game.UIMode.DEFAULT_COLOR_FG;
-    var bg = Game.UIMode.DEFAULT_COLOR_BG;
-    console.log("Game.UIMode.gameWin renderOnMain");
-    display.clear();
-    display.drawText(4,4,"You WON!!!",fg,bg);
+    var dims = Game.util.getDisplayDim(display);
+    display.drawText(1,3,Game.UIMode.DEFAULT_COLOR_STR+"text is "+text, dims.w-2);
+    //    console.log('TODO: check whether local storage has a game before offering restore');
+    //    console.log('TODO: check whether a game is in progress before offering restore');
+  },
+  getText: function () {
+    return this._text;
+  },
+  setText: function (t) {
+    this._text = t;
+    //    Game.renderDisplayMain();
   }
 };
