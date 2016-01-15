@@ -13,7 +13,7 @@ window.onload = function() {
         document.getElementById('wsrl-message-display').appendChild(   Game.getDisplay('message').getContainer());
 
         Game.Message.sendMessage("Welcome to WSRL!");
-        Game.switchUiMode(Game.UIMode.gameStart);
+        Game.switchUiMode('gameStart');
     }
 };
 
@@ -40,6 +40,7 @@ var Game = {
   },
   _game: null,
   _curUiMode: null,
+  _uiModeNameStack: [],
   _randomSeed: 0,
   TRANSIENT_RNG: null,
 
@@ -63,15 +64,15 @@ var Game = {
       }
     }
 
-    Game.switchUiMode(Game.UIMode.gameStart);
+    Game.switchUiMode('gameStart');
     this.renderAll();
 
     var game = this;
     var bindEventToUiMode = function(event) {
       window.addEventListener(event, function(e) {
         // send event to the ui mode if there is one
-        if (game._curUiMode !== null) {
-          game._curUiMode.handleInput(event, e);
+        if (game.getCurUiMode() !== null) {
+          game.getCurUiMode().handleInput(event, e);
         }
       });
     };
@@ -107,19 +108,25 @@ var Game = {
   },
   renderAvatar: function() {
     this.DISPLAYS.avatar.o.clear();
-    if (this._curUiMode === null) {
+    if (this.getCurUiMode() === null) {
       return;
     }
 
-    if (this._curUiMode.hasOwnProperty('renderAvatarInfo')) {
-      this._curUiMode.renderAvatarInfo(this.DISPLAYS.avatar.o);
+    if (this.getCurUiMode().hasOwnProperty('renderAvatarInfo')) {
+      this.getCurUiMode().renderAvatarInfo(this.DISPLAYS.avatar.o);
     } else {
       this.DISPLAYS.avatar.o.drawText(2,1,"avatar display");
     }
   },
   renderMain: function() {
-    if (this._curUiMode !== null && this._curUiMode.hasOwnProperty('renderOnMain')) {
-      this._curUiMode.renderOnMain(this.DISPLAYS.main.o);
+    this.DISPLAYS.main.o.clear();
+    if (this.getCurUiMode() === null) {
+      return;
+    }
+
+    console.dir(this.getCurUiMode());
+    if (this.getCurUiMode().hasOwnProperty('renderOnMain')) {
+      this.getCurUiMode().renderOnMain(this.DISPLAYS.main.o);
     } else {
       this.DISPLAYS.main.o.drawText(2,1,"main display");
     }
@@ -128,16 +135,67 @@ var Game = {
     // this.DISPLAYS.message.o.drawText(2,3,"message display");
     Game.Message.renderOn(this.DISPLAYS.message.o);
   },
-  switchUiMode: function (newMode) {
-    if (this._curUiMode !== null) {
-      this._curUiMode.exit();
-    }
-    this._curUiMode = newMode;
-    if (this._curUiMode !== null) {
-      this._curUiMode.enter();
-    }
-    this.renderAll();
+
+  hideDisplayMessage: function() {
+    this.DISPLAYS.message.o.clear();
   },
+  specialMessage: function(msg) {
+    this.DISPLAYS.message.o.clear();
+    this.DISPLAYS.message.o.drawText(1,1,'%c{#fff}%b{#000}'+msg,79);
+  },
+
+  getCurUiMode: function () {
+    var uiModeName = this._uiModeNameStack[0];
+    if (uiModeName) {
+      return Game.UIMode[uiModeName];
+    }
+    return null;
+  },
+  switchUiMode: function (newUiModeName) {
+    if (newUiModeName.startsWith('LAYER_')) {
+      console.log('cannot switchUiMode to layer '+newUiModeName);
+      return;
+    }
+    var curMode = this.getCurUiMode();
+    if (curMode !== null) {
+      curMode.exit();
+    }
+    this._uiModeNameStack[0] = newUiModeName;
+    var newMode = Game.UIMode[newUiModeName];
+    if (newMode) {
+      newMode.enter();
+    }
+    //this.renderDisplayAll();
+  },
+  addUiMode: function (newUiModeLayerName) {
+    if (! newUiModeLayerName.startsWith('LAYER_')) {
+      console.log('addUiMode not possible for non-layer '+newUiModeLayerName);
+      return;
+    }
+    // var curMode = this.getCurUiMode();
+    // if (curMode !== null) {
+    //   curMode.exit();
+    // }
+    this._uiModeNameStack.unshift(newUiModeLayerName);
+    var newMode = Game.UIMode[newUiModeLayerName];
+    if (newMode) {
+      newMode.enter();
+    }
+    //this.renderDisplayAll();
+  },
+  removeUiMode: function () {
+    var curMode = this.getCurUiMode();
+    if (curMode !== null) {
+      curMode.exit();
+    }
+    this._uiModeNameStack.shift();
+    // curMode = this.getCurUiMode();
+    // if (curMode !== null) {
+    //   curMode.enter();
+    // }
+    //this.renderDisplayAll();
+  },
+
   /*toJSON: function() {
     var json = {};
     json._randomSeed = this._randomSeed;
@@ -145,10 +203,9 @@ var Game = {
     return json;
   },*/
   eventHandler: function(eventType, evt) {
-    console.log(eventType);
-    console.dir(evt);
-    if (this._curUiMode !== null && this._curUiMode.hasOwnProperty('handleInput')) {
-      this._curUiMode.handleInput(eventType, evt);
+    // When an event is received have the current ui handle it
+    if (this.getCurUiMode() !== null) {
+      this.getCurUiMode().handleInput(eventType, evt);
     }
   }
 };

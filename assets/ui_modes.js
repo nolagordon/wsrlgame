@@ -19,7 +19,7 @@ Game.UIMode.gameStart = {
   handleInput: function (eventType, evt) {
     console.log("Game.UIMode.gameStart handleInput");
     if (evt.charCode !== 0) {
-      Game.switchUiMode(Game.UIMode.gamePersistence);
+      Game.switchUiMode('gamePersistence');
     }
   },
   renderOnMain: function (display) {
@@ -67,7 +67,15 @@ Game.UIMode.gamePersistence = {
     } else if (actionBinding.actionKey == 'PERSISTENCE_NEW') {
       this.newGame();
     } else if (actionBinding.actionKey == 'CANCEL') {
-      Game.switchUiMode(Game.UIMode.gamePlay);
+      if (Object.keys(Game.DATASTORE.MAP).length < 1) {
+        this.newGame();
+      } else {
+        Game.switchUiMode('gamePlay');
+      }
+    } else if (actionBinding.actionKey == 'HELP') {
+      //console.log('TODO: set up help stuff for gamepersistence');
+      Game.UIMode.LAYER_textReading.setText(Game.KeyBinding.getBindingHelpText());
+      Game.addUiMode('LAYER_textReading');
     }
     return false;
   },
@@ -125,7 +133,7 @@ Game.UIMode.gamePersistence = {
       Game.Scheduler._queue._time = state_data.SCHEDULE_TIME;
 
       Game.Message.sendMessage('game loaded');
-      Game.switchUiMode(Game.UIMode.gamePlay);
+      Game.switchUiMode('gamePlay');
       Game.KeyBinding.informPlayer();
     }
    },
@@ -146,7 +154,7 @@ Game.UIMode.gamePersistence = {
 
        window.localStorage.setItem(Game._PERSISTENCE_NAMESPACE, JSON.stringify(Game.DATASTORE));
        Game.Message.sendMessage('game saved');
-       Game.switchUiMode(Game.UIMode.gamePlay);
+       Game.switchUiMode('gamePlay');
      }
    },
    newGame: function () {
@@ -157,7 +165,9 @@ Game.UIMode.gamePersistence = {
      Game.setRandomSeed(5 + Math.floor(Game.TRANSIENT_RNG.getUniform()*100000));
      Game.UIMode.gamePlay.setupNewGame();
      Game.Message.sendMessage('new game started');
-     Game.switchUiMode(Game.UIMode.gamePlay);
+     Game.switchUiMode('gamePlay');
+
+     Game.Message.sendMessage("You work on the top floor of an ice cream factory. Unfortunately, there has been a nuclear explosion nearby and all the ice cream has come to life. Fight your way out!");
    },
    localStorageAvailable: function() {
      try {
@@ -313,7 +323,11 @@ Game.UIMode.gamePlay = {
     else if (actionBinding.actionKey   == 'CHANGE_BINDINGS') {
       Game.KeyBinding.swapToNextKeyBinding();
     } else if (actionBinding.actionKey == 'PERSISTENCE') {
-      Game.switchUiMode(Game.UIMode.gamePersistence);
+      Game.switchUiMode('gamePersistence');
+    } else if (actionBinding.actionKey == 'HELP') {
+      //console.log('TODO: set up help stuff for gameplay');
+      Game.UIMode.LAYER_textReading.setText(Game.KeyBinding.getBindingHelpText());
+      Game.addUiMode('LAYER_textReading');
     }
     if (tookTurn) {
       this.getAvatar().raiseEntityEvent('actionDone');
@@ -368,20 +382,27 @@ Game.UIMode.gamePlay = {
 //#############################################################################
 //#############################################################################
 
-Game.UIMode.textReading = {
+Game.UIMode.LAYER_textReading = {
   _storedKeyBinding: '',
-  _text: '',
+  _text: 'default',
+  _renderY: 0,
+  _renderScrollLimit: 0,
   enter: function () {
+    this._renderY = 0;
     this._storedKeyBinding = Game.KeyBinding.getKeyBinding();
-    Game.KeyBinding.setKeyBinding('textReading');
+    Game.KeyBinding.setKeyBinding('LAYER_textReading');
     Game.refresh();
+    Game.specialMessage("[Esc] to exit, [ and ] for scrolling");
+
     //console.log('game persistence');
   },
   exit: function () {
     Game.KeyBinding.setKeyBinding(this._storedKeyBinding);
-    Game.refresh();
+    setTimeout(function(){
+      Game.refresh();
+    }, 1);
   },
-  handleInput: function () {
+  handleInput: function (inputType,inputData) {
     var actionBinding = Game.KeyBinding.getInputBinding(inputType,inputData);
     // console.log('action binding is');
     // console.dir(actionBinding);
@@ -389,12 +410,23 @@ Game.UIMode.textReading = {
     if (! actionBinding) {
       return false;
     }
-/*
-  if        (actionBinding.actionKey == 'PERSISTENCE_SAVE') {
- +      this.saveGame();
- +    } else if (actionBinding.actionKey == 'PERSISTENCE_LOAD') {
- +      this.restoreGame();
- +    } else if (actionBinding.actionKey == 'PERSISTENCE_NEW') {
+
+    if (actionBinding.actionKey == 'CANCEL') {
+      Game.removeUiMode();
+    }
+    if        (actionBinding.actionKey == 'DATA_NAV_UP') {
+      this._renderY++;
+      if (this._renderY > 0) { this._renderY = 0; }
+      Game.renderMain();
+      return true;
+    } else if (actionBinding.actionKey == 'DATA_NAV_DOWN') {
+      this._renderY--;
+      if (this._renderY < this._renderScrollLimit) { this._renderY = this._renderScrollLimit; }
+      Game.renderMain();
+      return true;
+    }
+    /*
+     + else if (actionBinding.actionKey == 'PERSISTENCE_NEW') {
  +      this.newGame();
  +    } else if (actionBinding.actionKey == 'CANCEL') {
  +      Game.switchUiMode(Game.UIMode.gamePlay);
@@ -404,15 +436,19 @@ Game.UIMode.textReading = {
   },
   renderOnMain: function (display) {
     var dims = Game.util.getDisplayDim(display);
-    display.drawText(1,3,Game.UIMode.DEFAULT_COLOR_STR+"text is "+text, dims.w-2);
-    //    console.log('TODO: check whether local storage has a game before offering restore');
-    //    console.log('TODO: check whether a game is in progress before offering restore');
+    var linesTaken = display.drawText(1,this._renderY,Game.UIMode.DEFAULT_COLOR_STR+this._text, dims.w-2);
+    // console.log("linesTaken is "+linesTaken);
+    // console.log("dims.h is "+dims.h);
+    this._renderScrollLimit = dims.h - linesTaken;
+    if (this._renderScrollLimit > 0) { this._renderScrollLimit=0; }
   },
   getText: function () {
     return this._text;
   },
   setText: function (t) {
     this._text = t;
-    //    Game.renderDisplayMain();
+    // for (var i = 0; i < 400; i++) {
+    //   this._text += ' '+['sit','amet','consectetur','adipiscing elit','sed','do','eiusmod','tempor','incididunt','ut','labore','et','dolore','magna','aliqua'].random();
+    // }
   }
 };
