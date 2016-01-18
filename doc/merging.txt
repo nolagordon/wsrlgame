@@ -1,0 +1,14 @@
+Plan to implement enemy merging:
+
+Update listeners for entity Mixins
+
+Either recycle the melee attacker mixin or create a new mixin for enemies
+Add/update the bumpEntity listener to trigger some event that may cause
+  the enemies to merge if they are of compatible types
+    - ex: vanilla and chocolate, vanilla-chocolate swirl and strawberry, etc.
+Options for changing enemy stats:
+  - add the stats of the two enemies that merged
+  - average the stats of the enemies that merged
+  - other math?
+Notify the player through a message that enemies have merged (so they
+  know there's a stronger-than-average enemy out there)
