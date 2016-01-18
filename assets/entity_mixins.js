@@ -218,6 +218,20 @@ Game.EntityMixin.HitPoints = {
   getCurHp: function () {
     return this.attr._HitPoints_attr.curHp;
   },
+  curHpToString: function() {
+    percentTotalHp = this.attr._HitPoints_attr.curHp / this.attr._HitPoints_attr.maxHp;
+    if (percentTotalHp < 10) {
+      return "freezing";
+    } else if (percentTotalHp < 30) {
+      return "cold";
+    } else if (percentTotalHp < 50) {
+      return "chilly";
+    } else if (percentTotalHp < 70) {
+      return "fine";
+    } else {
+      return "warm";
+    }
+  },
   setCurHp: function (n) {
     this.attr._HitPoints_attr.curHp = n;
   },
@@ -235,10 +249,25 @@ Game.EntityMixin.Hunger = {
     mixinGroup: 'Hunger',
     stateNamespace: '_Hunger_attr',
     stateModel:  {
-      status: 4
+      status: 4,
+      maxTurnsUntilHungerDrops: 50,
+      turnsUntilHungerDrops: 50
     },
     init: function (template) {
       this.attr._Hunger_attr.status = template.status || 4;
+      this.attr._Hunger_attr.maxTurnsUntilHungerDrops = template.maxTurnsUntilHungerDrops || 50;
+      this.attr._Hunger_attr.turnsUntilHungerDrops = template.turnsUntilHungerDrops || this.attr._Hunger_attr.maxTurnsUntilHungerDrops;
+    },
+    listeners: {
+      'actionDone': function(evtData) {
+        this.attr._Hunger_attr.turnsUntilHungerDrops--;
+        console.log("turns until hunger drops is: " + this.attr._Hunger_attr.turnsUntilHungerDrops);
+        if (this.attr._Hunger_attr.turnsUntilHungerDrops === 0) {
+          this.attr._Hunger_attr.status--;
+          /* Code to make character die if hunger drops to 0 goes here */
+          this.turnsUntilHungerDrops = this.maxTurnsUntilHungerDrops;
+        }
+      }
     }
   },
   statusToString: function() {
