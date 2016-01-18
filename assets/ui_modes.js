@@ -1,7 +1,7 @@
 Game.UIMode = {};
-Game.UIMode.DEFAULT_COLOR_FG = '#fff';
-Game.UIMode.DEFAULT_COLOR_BG = '#000';
-Game.UIMode.DEFAULT_COLOR_STR = '%c{'+Game.UIMode.DEFAULT_COLOR_FG+'}%b{'+Game.UIMode.DEFAULT_COLOR_BG+'}';
+Game.UIMode.DEFAULT_COLOR_FG = '#cceeff';
+Game.UIMode.DEFAULT_COLOR_BG = '#19afdb';
+Game.UIMode.DEFAULT_COLOR_STR = '%c{'+'#fff'+'}%b{'+'#000'+'}';
 
 //#############################################################################
 //#############################################################################
@@ -367,8 +367,8 @@ Game.UIMode.gamePlay = {
 
     // dev code - just add some entities to the map
     for (var ecount = 0; ecount < 5; ecount++) {
-      this.getMap().addEntity(Game.EntityGenerator.create('moss'),this.getMap().getRandomWalkableLocation());
-      this.getMap().addEntity(Game.EntityGenerator.create('newt'),this.getMap().getRandomWalkableLocation());
+      this.getMap().addEntity(Game.EntityGenerator.create('ice'),this.getMap().getRandomWalkableLocation());
+      this.getMap().addEntity(Game.EntityGenerator.create('vanilla scoop'),this.getMap().getRandomWalkableLocation());
     }
   },
   toJSON: function() {

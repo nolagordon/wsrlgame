@@ -3,23 +3,23 @@ Game.EntityGenerator = new Game.Generator('entities',Game.Entity);
 Game.EntityGenerator.learn({
   name: 'avatar',
   chr:'\u2744',
-  fg:'#dda',
+  fg:'#2457c5',
   maxHp: 10,
   mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "HitPoints", "Chronicle", "Hunger", "MeleeAttacker"]
 });
 
 Game.EntityGenerator.learn({
-  name: 'moss',
+  name: 'ice',
   chr:'%',
-  fg:'#6b6',
+  fg:'#fff',
   maxHp: 1,
   mixins: ["HitPoints"]
 });
 
 Game.EntityGenerator.learn({
-  name: 'newt',
-  chr:'~',
-  fg:'#f98',
+  name: 'vanilla scoop',
+  chr:'O',
+  fg:'#fff',
   maxHp: 2,
   mixins: ["HitPoints", "WanderActor", "WalkerCorporeal"]
 });
