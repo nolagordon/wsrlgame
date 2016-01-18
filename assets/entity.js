@@ -78,6 +78,8 @@ Game.Entity.prototype.destroy = function() {
   this.getMap().extractEntity(this);
   //remove from datastore
   Game.DATASTORE.ENTITY[this.getId()] = undefined;
+  // remove from Scheduler
+  Game.Scheduler.remove(this);
 };
 
 Game.Entity.prototype.getId = function() {
@@ -90,6 +92,10 @@ Game.Entity.prototype.getMap = function() {
 
 Game.Entity.prototype.setMap = function(map) {
   this.attr._mapId = map.getId();
+};
+
+Game.Entity.prototype.getMapId = function() {
+  return this.attr._mapId;
 };
 
 Game.Entity.prototype.getName = function() {

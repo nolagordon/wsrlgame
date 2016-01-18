@@ -23,10 +23,12 @@ Game.EntityMixin.PlayerMessager = {
       'damagedBy': function(evtData) {
         Game.Message.sendMessage('the '+evtData.damager.getName()+' hit you for '+evtData.damageAmount);
         Game.renderMessage();
+        Game.Message.ageMessages();
       },
       'killed': function(evtData) {
         Game.Message.sendMessage('you were killed by the '+evtData.killedBy.getName());
         Game.renderMessage();
+        Game.Message.ageMessages();
       }
     }
   }
@@ -51,7 +53,12 @@ Game.EntityMixin.PlayerActor = {
         Game.Scheduler.setDuration(this.getCurrentActionDuration());
         this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-5,5));
         setTimeout(function() {Game.TimeEngine.unlock();},1); // NOTE: this tiny delay ensures console output happens in the right order, which in turn means I have confidence in the turn-taking order of the various entities
+        Game.renderMessage();
         // console.log("end player acting");
+      },
+      'killed': function(evtData) {
+        Game.TimeEngine.lock();
+        Game.switchUiMode("gameLose");
       }
     }
   },
@@ -78,7 +85,9 @@ Game.EntityMixin.PlayerActor = {
     // console.log("player pre-lock engine lock state is "+Game.TimeEngine._lock);
     if (this.isActing()) { return; } // a gate to deal with JS timing issues
     this.isActing(true);
-    Game.refresh();
+    //Game.refresh();
+    Game.renderMain();
+    Game.renderAvatar();
     Game.TimeEngine.lock();
     // console.log("player post-lock engine lock state is "+Game.TimeEngine._lock);
     this.isActing(false);
@@ -280,6 +289,97 @@ Game.EntityMixin.MeleeAttacker = {
   },
   getAttackPower: function () {
     return this.attr._MeleeAttacker_attr.attackPower;
+  }
+};
+
+Game.EntityMixin.Sight = {
+  META: {
+    mixinName: 'Sight',
+    mixinGroup: 'Sense',
+    stateNamespace: '_Sight_attr',
+    stateModel:  {
+      sightRadius: 3
+    },
+    init: function (template) {
+      this.attr._Sight_attr.sightRadius = template.sightRadius || 3;
+    }
+  },
+  getSightRadius: function () {
+    return this.attr._Sight_attr.sightRadius;
+  },
+  setSightRadius: function (n) {
+    this.attr._Sight_attr.sightRadius = n;
+  },
+
+  canSeeEntity: function(entity) {
+    // If not on the same map or on different maps, then exit early
+    if (!entity || this.getMapId() !== entity.getMapId()) {
+      return false;
+    }
+    return this.canSeeCoord(entity.getX(),entity.getY());
+  },
+  canSeeCoord: function(x_or_pos,y) {
+    var otherX = x_or_pos,otherY=y;
+    if (typeof x_or_pos == 'object') {
+      otherX = x_or_pos.x;
+      otherY = x_or_pos.y;
+    }
+
+    // If we're not within the sight radius, then we won't be in a real field of view either.
+    if (Math.max(Math.abs(otherX - this.getX()),Math.abs(otherY - this.getY())) > this.attr._Sight_attr.sightRadius) {
+      return false;
+    }
+
+    var inFov = this.getVisibleCells();
+    return inFov[otherX+','+otherY] || false;
+  },
+  getVisibleCells: function() {
+    var visibleCells = {'byDistance':{}};
+    for (var i=0;i<=this.getSightRadius();i++) {
+      visibleCells.byDistance[i] = {};
+    }
+    this.getMap().getFov().compute(
+      this.getX(), this.getY(),
+      this.getSightRadius(),
+      function(x, y, radius, visibility) {
+        visibleCells[x+','+y] = true;
+        visibleCells.byDistance[radius][x+','+y] = true;
+      }
+    );
+    return visibleCells;
+  },
+  canSeeCoord_delta: function(dx,dy) {
+    return this.canSeeCoord(this.getX()+dx,this.getY()+dy);
+  }
+};
+
+
+Game.EntityMixin.MapMemory = {
+  META: {
+    mixinName: 'MapMemory',
+    mixinGroup: 'MapMemory',
+    stateNamespace: '_MapMemory_attr',
+    stateModel:  {
+      mapsHash: {}
+    },
+    init: function (template) {
+      this.attr._MapMemory_attr.mapsHash = template.mapsHash || {};
+    }
+  },
+  rememberCoords: function (coordSet,mapId) {
+    var mapKey=mapId || this.getMapId();
+    if (! this.attr._MapMemory_attr.mapsHash[mapKey]) {
+      this.attr._MapMemory_attr.mapsHash[mapKey] = {};
+    }
+    for (var coord in coordSet) {
+      if (coordSet.hasOwnProperty(coord) && (coord != 'byDistance')) {
+        this.attr._MapMemory_attr.mapsHash[mapKey][coord] = true;
+      }
+    }
+  },
+  getRememberedCoordsForMap: function (mapId) {
+    var mapKey=mapId || this.getMapId();
+    return this.attr._MapMemory_attr.mapsHash[mapKey] || {};
   }
 };
 

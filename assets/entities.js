@@ -5,7 +5,7 @@ Game.EntityGenerator.learn({
   chr:'\u2744',
   fg:'#2457c5',
   maxHp: 10,
-  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "HitPoints", "Chronicle", "Hunger", "MeleeAttacker"]
+  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Chronicle", "Hunger", "MeleeAttacker"]
 });
 
 Game.EntityGenerator.learn({
@@ -22,4 +22,13 @@ Game.EntityGenerator.learn({
   fg:'#fff',
   maxHp: 2,
   mixins: ["HitPoints", "WanderActor", "WalkerCorporeal"]
+});
+
+Game.EntityGenerator.learn({
+  name: 'strawberry scoop',
+  chr:'O',
+  fg:'#ee9dda',
+  maxHp: 3,
+  attackPower: 2,
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker"]
 });
