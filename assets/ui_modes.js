@@ -203,6 +203,9 @@ Game.UIMode.gamePersistence = {
 Game.UIMode.gameWin = {
   enter: function () {
     console.log('game winning');
+    Game.TimeEngine.lock();
+    Game.renderAvatar();
+    Game.renderMain();
   },
   exit: function () {
   },
@@ -224,6 +227,9 @@ Game.UIMode.gameWin = {
 Game.UIMode.gameLose = {
   enter: function () {
     console.log('game losing');
+    Game.TimeEngine.lock();
+    Game.renderAvatar();
+    Game.renderMain();
   },
   exit: function () {
   },
@@ -337,13 +343,13 @@ Game.UIMode.gamePlay = {
     return false;
   },
   renderOnMain: function (display) {
-    var fg = Game.UIMode.DEFAULT_COLOR_FG;
-    var bg = Game.UIMode.DEFAULT_COLOR_BG;
-    console.log("Game.UIMode.gamePlay renderOnMain");
     display.clear();
-    //this.getMap().renderOn(display,this.attr._cameraX,this.attr._cameraY);
-    this.getMap().renderOn(display,this.attr._cameraX,this.attr._cameraY,false,true,true);
-    this.getMap().renderFovOn(display,this.attr._cameraX,this.attr._cameraY,this.getAvatar().getSightRadius());
+    var seenCells = this.getAvatar().getVisibleCells();
+    this.getMap().renderOn(display,this.attr._cameraX,this.attr._cameraY,{
+      visibleCells:seenCells,
+      maskedCells:this.getAvatar().getRememberedCoordsForMap()
+    });
+    this.getAvatar().rememberCoords(seenCells);
   },
   renderAvatarInfo: function (display) {
     display.drawText(1,2,Game.UIMode.DEFAULT_COLOR_STR+"avatar x: "+this.getAvatar().getX()); // DEV
