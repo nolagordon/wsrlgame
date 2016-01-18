@@ -341,7 +341,9 @@ Game.UIMode.gamePlay = {
     var bg = Game.UIMode.DEFAULT_COLOR_BG;
     console.log("Game.UIMode.gamePlay renderOnMain");
     display.clear();
-    this.getMap().renderOn(display,this.attr._cameraX,this.attr._cameraY);
+    //this.getMap().renderOn(display,this.attr._cameraX,this.attr._cameraY);
+    this.getMap().renderOn(display,this.attr._cameraX,this.attr._cameraY,false,true,true);
+    this.getMap().renderFovOn(display,this.attr._cameraX,this.attr._cameraY,this.getAvatar().getSightRadius());
   },
   renderAvatarInfo: function (display) {
     display.drawText(1,2,Game.UIMode.DEFAULT_COLOR_STR+"avatar x: "+this.getAvatar().getX()); // DEV
@@ -369,6 +371,7 @@ Game.UIMode.gamePlay = {
     for (var ecount = 0; ecount < 5; ecount++) {
       this.getMap().addEntity(Game.EntityGenerator.create('moss'),this.getMap().getRandomWalkableLocation());
       this.getMap().addEntity(Game.EntityGenerator.create('newt'),this.getMap().getRandomWalkableLocation());
+      this.getMap().addEntity(Game.EntityGenerator.create('angry squirrel'),this.getMap().getRandomWalkableLocation());
     }
   },
   toJSON: function() {

@@ -5,7 +5,7 @@ Game.EntityGenerator.learn({
   chr:'\u2744',
   fg:'#dda',
   maxHp: 10,
-  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "HitPoints", "Chronicle", "Hunger", "MeleeAttacker"]
+  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "HitPoints", "Chronicle", "Hunger", "MeleeAttacker"]
 });
 
 Game.EntityGenerator.learn({
@@ -22,4 +22,13 @@ Game.EntityGenerator.learn({
   fg:'#f98',
   maxHp: 2,
   mixins: ["HitPoints", "WanderActor", "WalkerCorporeal"]
+});
+
+Game.EntityGenerator.learn({
+  name: 'angry squirrel',
+  chr:'&',
+  fg:'#aaa',
+  maxHp: 3,
+  attackPower: 2,
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker"]
 });
