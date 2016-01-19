@@ -345,7 +345,7 @@ Game.EntityMixin.Hunger = {
           this.attr._Hunger_attr.status--;
           /* Code to make character die if hunger drops to 0 goes here */
           if (this.attr._Hunger_attr.status === 0) {
-            this.raiseEntityEvent('starved',{});
+            this.raiseSymbolActiveEvent('starved',{});
           }
           this.attr._Hunger_attr.turnsUntilHungerDrops = this.attr._Hunger_attr.maxTurnsUntilHungerDrops;
         }
