@@ -98,6 +98,12 @@ var Game = {
   getDisplay: function(displayName) {
     return this.DISPLAYS[displayName].o;
   },
+  getDisplayHeight: function (displayId) {
+    if (this.DISPLAYS.hasOwnProperty(displayId)) {
+      return this.DISPLAYS[displayId].h;
+    }
+    return null;
+  },
   refresh: function () {
     this.renderAll();
   },
@@ -112,7 +118,8 @@ var Game = {
       return;
     }
 
-    if (this.getCurUiMode().hasOwnProperty('renderAvatarInfo')) {
+
+    if ('renderAvatarInfo' in this.getCurUiMode()) {
       this.getCurUiMode().renderAvatarInfo(this.DISPLAYS.avatar.o);
     } else {
       this.DISPLAYS.avatar.o.drawText(2,1,"avatar display");
@@ -125,7 +132,7 @@ var Game = {
     }
 
     console.dir(this.getCurUiMode());
-    if (this.getCurUiMode().hasOwnProperty('renderOnMain')) {
+    if ('renderOnMain' in this.getCurUiMode()) {
       this.getCurUiMode().renderOnMain(this.DISPLAYS.main.o);
     } else {
       this.DISPLAYS.main.o.drawText(2,1,"main display");
