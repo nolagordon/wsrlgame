@@ -4,8 +4,8 @@ Game.EntityGenerator.learn({
   name: 'avatar',
   chr:'\u2744',
   fg:'#dda',
-  sightRadius: 5,
-  maxHp: 10,
+  sightRadius: 1000,
+  maxHp: 1000,
   attackAvoid: 1,
   attackDamage: 2,
   mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Hunger", "Chronicle", "MeleeAttacker", "MeleeDefender"]
