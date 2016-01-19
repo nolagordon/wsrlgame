@@ -7,37 +7,83 @@ Game.EntityMixin.PlayerMessager = {
     mixinName: 'PlayerMessager',
     mixinGroup: 'PlayerMessager',
     listeners: {
+
       'walkForbidden': function(evtData) {
         Game.Message.sendMessage('you can\'t walk into the '+evtData.target.getName());
         Game.renderMessage();
         Game.Message.ageMessages();
       },
+
       'attackAvoided': function(evtData) {
         Game.Message.sendMessage('you avoided the '+evtData.attacker.getName());
         Game.renderMessage();
         Game.Message.ageMessages(); // NOTE: maybe not do this? If surrounded by multiple attackers messages could be aged out before being seen...
       },
+
       'attackMissed': function(evtData) {
         Game.Message.sendMessage('you missed the '+evtData.recipient.getName());
         Game.renderMessage();
       },
+
       'dealtDamage': function(evtData) {
         Game.Message.sendMessage('you hit the '+evtData.damagee.getName()+' for '+evtData.damageAmount);
         Game.renderMessage();
       },
+
       'madeKill': function(evtData) {
         Game.Message.sendMessage('you killed the '+evtData.entKilled.getName());
         Game.renderMessage();
       },
+
       'damagedBy': function(evtData) {
         Game.Message.sendMessage('the '+evtData.damager.getName()+' hit you for '+evtData.damageAmount);
         Game.renderMessage();
         Game.Message.ageMessages();
       },
+
       'killed': function(evtData) {
         Game.Message.sendMessage('you were killed by the '+evtData.killedBy.getName());
         Game.renderMessage();
         Game.Message.ageMessages();
+      },
+
+      'noItemsToPickup': function(evtData) {
+        Game.Message.sendMessage('there is nothing to pickup');
+        Game.renderMessage();
+      },
+      'inventoryFull': function(evtData) {
+        Game.Message.sendMessage('your inventory is full');
+        Game.renderMessage();
+      },
+      'inventoryEmpty': function(evtData) {
+        Game.Message.sendMessage('you are not carrying anything');
+        Game.renderMessage();
+      },
+      'noItemsPickedUp': function(evtData) {
+        Game.Message.sendMessage('you could not pick up any items');
+        Game.renderMessage();
+      },
+      'someItemsPickedUp': function(evtData) {
+        Game.Message.sendMessage('you picked up '+evtData.numItemsPickedUp+' of the items, leaving '+evtData.numItemsNotPickedUp+' of them');
+        Game.renderMessage();
+      },
+      'allItemsPickedUp': function(evtData) {
+        if (evtData.numItemsPickedUp > 2) {
+          Game.Message.sendMessage('you picked up all '+evtData.numItemsPickedUp+' items');
+        } else if (evtData.numItemsPickedUp == 2) {
+          Game.Message.sendMessage('you picked up both items');
+        } else {
+          Game.Message.sendMessage('you picked up the '+evtData.lastItemPickedUpName);
+        }
+        Game.renderMessage();
+      },
+      'itemsDropped': function(evtData) {
+        if (evtData.numItemsDropped > 1) {
+          Game.Message.sendMessage('you dropped '+evtData.numItemsDropped+' items');
+        } else {
+          Game.Message.sendMessage('you dropped the '+evtData.lastItemDroppedName);
+        }
+        Game.renderMessage();
       }
     }
   }
@@ -475,6 +521,111 @@ Game.EntityMixin.MapMemory = {
   getRememberedCoordsForMap: function (mapId) {
     var mapKey=mapId || this.getMapId();
     return this.attr._MapMemory_attr.mapsHash[mapKey] || {};
+  }
+};
+
+Game.EntityMixin.InventoryHolder = {
+  META: {
+    mixinName: 'InventoryHolder',
+    mixinGroup: 'InventoryHolder',
+    stateNamespace: '_InventoryHolder_attr',
+    stateModel:  {
+      containerId: '',
+      inventoryCapacity: 5
+    },
+    init: function (template) {
+      this.attr._InventoryHolder_attr.inventoryCapacity = template.inventoryCapacity || 5;
+      if (template.containerId) {
+        this.attr._InventoryHolder_attr.containerId = template.containerId;
+      } else {
+        var container = Game.ItemGenerator.create('_inventoryContainer');
+        container.setCapacity(this.attr._InventoryHolder_attr.inventoryCapacity);
+        this.attr._InventoryHolder_attr.containerId = container.getId();
+      }
+    },
+    listeners: {
+      'pickupItems': function(evtData) {
+        return {addedAnyItems: this.pickupItems(evtData.itemSet)};
+      },
+      'dropItems': function(evtData) {
+        return {droppedItems: this.dropItems(evtData.itemSet)};
+      }
+    }
+  },
+  _getContainer: function () {
+    return Game.DATASTORE.ITEM[this.attr._InventoryHolder_attr.containerId];
+  },
+
+  hasInventorySpace: function () {
+    return this._getContainer().hasSpace();
+  },
+  addInventoryItems: function (items_or_ids) {
+    return this._getContainer().addItems(items_or_ids);
+  },
+  getInventoryItemIds: function () {
+    return this._getContainer().getItemIds();
+  },
+  extractInventoryItems: function (ids_or_idxs) {
+    return this._getContainer().extractItems(ids_or_idxs);
+  },
+  pickupItems: function (ids_or_idxs) {
+    var itemsToAdd = [];
+    var fromPile = this.getMap().getItems(this.getPos());
+    var pickupResult = {
+      numItemsPickedUp:0,
+      numItemsNotPickedUp:ids_or_idxs.length
+    };
+
+    if (fromPile.length < 1) {
+      this.raiseSymbolActiveEvent('noItemsToPickup');
+      return pickupResult;
+    }
+    if (! this._getContainer().hasSpace()) {
+      this.raiseSymbolActiveEvent('inventoryFull');
+      this.raiseSymbolActiveEvent('noItemsPickedUp');
+      return pickupResult;
+    }
+
+    for (var i = 0; i < fromPile.length; i++) {
+      if ((ids_or_idxs.indexOf(i) > -1) || (ids_or_idxs.indexOf(fromPile[i].getId()) > -1)) {
+        itemsToAdd.push(fromPile[i]);
+      }
+    }
+    var addResult = this._getContainer().addItems(itemsToAdd);
+    pickupResult.numItemsPickedUp = addResult.numItemsAdded;
+    pickupResult.numItemsNotPickedUp = addResult.numItemsNotAdded;
+    var lastItemFromMap = '';
+    for (var j = 0; j < pickupResult.numItemsPickedUp; j++) {
+      lastItemFromMap = this.getMap().extractItemAt(itemsToAdd[j],this.getPos());
+    }
+
+    pickupResult.lastItemPickedUpName = lastItemFromMap.getName();
+    if (pickupResult.numItemsNotPickedUp > 0) {
+      this.raiseSymbolActiveEvent('someItemsPickedUp',pickupResult);
+    } else {
+      this.raiseSymbolActiveEvent('allItemsPickedUp',pickupResult);
+    }
+
+    return pickupResult;
+  },
+  dropItems: function (ids_or_idxs) {
+    var itemsToDrop = this._getContainer().extractItems(ids_or_idxs);
+    var dropResult = {numItemsDropped:0};
+    if (itemsToDrop.length < 1) {
+      this.raiseSymbolActiveEvent('inventoryEmpty');
+      return dropResult;
+    }
+    var lastItemDropped = '';
+    for (var i = 0; i < itemsToDrop.length; i++) {
+      if (itemsToDrop[i]) {
+        lastItemDropped = itemsToDrop[i];
+        this.getMap().addItem(itemsToDrop[i],this.getPos());
+        dropResult.numItemsDropped++;
+      }
+    }
+    dropResult.lastItemDroppedName = lastItemDropped.getName();
+    this.raiseSymbolActiveEvent('itemsDropped',dropResult);
+    return dropResult;
   }
 };
 
