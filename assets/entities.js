@@ -8,7 +8,8 @@ Game.EntityGenerator.learn({
   maxHp: 1000,
   attackAvoid: 1,
   attackDamage: 2,
-  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Hunger", "Chronicle", "MeleeAttacker", "MeleeDefender"]
+  inventoryCapacity: 35,
+  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Hunger", "Chronicle", "MeleeAttacker", "MeleeDefender", "InventoryHolder"]
 });
 
 Game.EntityGenerator.learn({
@@ -29,7 +30,7 @@ Game.EntityGenerator.learn({
 
 Game.EntityGenerator.learn({
   name: 'angry squirrel',
-  chr:'&',
+  chr:String.fromCharCode(163),
   fg:'#aaa',
   maxHp: 2,
   attackPower: 1,
