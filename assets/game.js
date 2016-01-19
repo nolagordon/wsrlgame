@@ -144,6 +144,10 @@ var Game = {
     this.DISPLAYS.message.o.drawText(1,1,'%c{#fff}%b{#000}'+msg,79);
   },
 
+  getAvatar: function () {
+    return Game.UIMode.gamePlay.getAvatar();
+  },
+
   getCurUiMode: function () {
     var uiModeName = this._uiModeNameStack[0];
     if (uiModeName) {
@@ -202,6 +206,7 @@ var Game = {
     json[Game.UIMode.gamePlay.JSON_KEY] = Game.UIMode.gamePlay.toJSON();
     return json;
   },*/
+
   eventHandler: function(eventType, evt) {
     // When an event is received have the current ui handle it
     if (this.getCurUiMode() !== null) {

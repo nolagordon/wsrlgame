@@ -217,7 +217,7 @@ Game.UIMode.gameWin = {
     // console.dir(inputType);
     // console.log('gameStart inputData:');
     // console.dir(inputData);
-    Game.Message.clear();
+    Game.Message.clearMessages();
   }
 };
 
@@ -358,8 +358,11 @@ Game.UIMode.gamePlay = {
     display.drawText(1,5,Game.UIMode.DEFAULT_COLOR_STR+"HP: "+this.getAvatar().getCurHp());
     display.drawText(1,6,Game.UIMode.DEFAULT_COLOR_STR+"hunger: "+this.getAvatar().statusToString());
   },
-  moveAvatar: function (dx,dy) {
-    if (this.getAvatar().tryWalk(this.getMap(),dx,dy)) {
+  moveAvatar: function (pdx,pdy) {
+    // console.log('moveAvatar '+pdx+','+pdy);
+    var moveResp = this.getAvatar().raiseEntityEvent('adjacentMove',{dx:pdx,dy:pdy});
+    // if (this.getAvatar().tryWalk(this.getMap(),dx,dy)) {
+    if (moveResp.madeAdjacentMove && moveResp.madeAdjacentMove[0]) {
       this.setCameraToAvatar();
       return true;
     }
@@ -374,11 +377,13 @@ Game.UIMode.gamePlay = {
     this.setCameraToAvatar();
 
     // dev code - just add some entities to the map
-    for (var ecount = 0; ecount < 5; ecount++) {
+    for (var ecount = 0; ecount < 4; ecount++) {
       this.getMap().addEntity(Game.EntityGenerator.create('moss'),this.getMap().getRandomWalkableLocation());
       this.getMap().addEntity(Game.EntityGenerator.create('newt'),this.getMap().getRandomWalkableLocation());
       this.getMap().addEntity(Game.EntityGenerator.create('angry squirrel'),this.getMap().getRandomWalkableLocation());
+      this.getMap().addEntity(Game.EntityGenerator.create('attack slug'),this.getMap().getRandomWalkableLocation());
     }
+    Game.Message.sendMessage("Kill 3 or more attack slugs to win!");
   },
   toJSON: function() {
     return Game.UIMode.gamePersistence.BASE_toJSON.call(this);
