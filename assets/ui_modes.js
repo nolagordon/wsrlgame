@@ -241,7 +241,7 @@ Game.UIMode.gameLose = {
     // console.dir(inputType);
     // console.log('gameStart inputData:');
     // console.dir(inputData);
-    Game.Message.clear();
+    Game.Message.clearMessages();
   }
 };
 
