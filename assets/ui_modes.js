@@ -334,7 +334,19 @@ Game.UIMode.gamePlay = {
       //console.log('TODO: set up help stuff for gameplay');
       Game.UIMode.LAYER_textReading.setText(Game.KeyBinding.getBindingHelpText());
       Game.addUiMode('LAYER_textReading');
+    } else if (actionBinding.actionKey == 'CHANGE_FLOOR') {
+      // Check whether the player is occupying a stairs tile
+      // If so, change their floor accordingly
+      var avatarPos = this.getAvatar().getPos();
+      if (this.getMap().getTile(avatarPos).getName() === 'stairsDown'){
+        Game.Message.sendMessage("Congratulations! You escaped!");
+        Game.switchUiMode('gameWin');
+      } else {
+        Game.Message.sendMessage("There are no stairs to climb here");
+      }
+
     }
+
     if (tookTurn) {
       this.getAvatar().raiseEntityEvent('actionDone');
       Game.Message.ageMessages();

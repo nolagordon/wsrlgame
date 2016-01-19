@@ -205,6 +205,10 @@ Game.KeyBinding = {
     },
     CANCEL          : {action_group:'meta' ,guid :Game.util.uniqueId() ,ordering:1 ,short:'cancel'   ,long:'cancel/close the current action/screen',
       all: {label:'Esc' ,inputMatch:ROT.VK_ESCAPE     ,inputType:'keydown' ,inputMetaShift:false ,inputMetaCtrl:false}
+    },
+
+    CHANGE_FLOOR : {action_group:'meta', guid: Game.util.uniqueId(), ordering: 1, short: 'floor', long: 'make player climb a staircase',
+      all: {label:' ', inputMatch:ROT.VK_SPACE, inputType:'keydown', inputMetaShift: false, inputMetaCtrl: false}
     }
   }
 };

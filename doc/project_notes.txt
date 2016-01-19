@@ -18,3 +18,13 @@ story
 TODO:
   1. More checks for game persistence (i.e. don't want player to try to resume
   a game if they don't have one currently)
+
+
+Notes about multiple floors:
+  Right now, my idea is to add stairs to each floor in some random location, then generate a new
+floor each time the player ascends/descends stairs. The player will be placed in a random location
+after changing floors. There should be some extra field that will store the floor that the player is
+on. Enemies can be generated based on which floor the player occupies. The player can press enter
+to interact with a staircase.
+  Current bug: sometimes it seems that the stairs generates in an unreachable position. I'm not sure
+whether this can be fixed by using another map generation algorithm.
