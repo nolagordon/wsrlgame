@@ -59,6 +59,11 @@ Game.EntityMixin.PlayerActor = {
       'killed': function(evtData) {
         Game.TimeEngine.lock();
         Game.switchUiMode("gameLose");
+      },
+      'starved': function(evtData) {
+        Game.TimeEngine.lock();
+        Game.Message.sendMessage("You starved to death.");
+        Game.switchUiMode("gameLose");
       }
     }
   },
@@ -265,7 +270,10 @@ Game.EntityMixin.Hunger = {
         if (this.attr._Hunger_attr.turnsUntilHungerDrops === 0) {
           this.attr._Hunger_attr.status--;
           /* Code to make character die if hunger drops to 0 goes here */
-          this.turnsUntilHungerDrops = this.maxTurnsUntilHungerDrops;
+          if (this.attr._Hunger_attr.status === 0) {
+            this.raiseEntityEvent('starved',{});
+          }
+          this.attr._Hunger_attr.turnsUntilHungerDrops = this.attr._Hunger_attr.maxTurnsUntilHungerDrops;
         }
       }
     }
