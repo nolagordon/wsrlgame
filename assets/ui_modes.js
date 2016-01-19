@@ -84,11 +84,7 @@ Game.UIMode.gamePersistence = {
       var json_state_data = window.localStorage.getItem(Game._PERSISTENCE_NAMESPACE);
       var state_data = JSON.parse(json_state_data);
 
-      Game.DATASTORE = {};
-      Game.DATASTORE.MAP = {};
-      Game.DATASTORE.ENTITY = {};
-      Game.initializeTimingEngine();
-      // NOTE: the timing stuff is initialized here because we need to ensure that the stuff exists when entities are created, but the actual schedule restoration re-runs timing initialization
+      this._resetGameDataStructures();
 
       // game level stuff
       Game.setRandomSeed(state_data[this.RANDOM_SEED_KEY]);
@@ -112,6 +108,16 @@ Game.UIMode.gamePersistence = {
 
           Game.DATASTORE.ENTITY[entityId] = newE;
           Game.DATASTORE.ENTITY[entityId].fromJSON(state_data.ENTITY[entityId]);
+        }
+      }
+
+      // items
+      for (var itemId in state_data.ITEM) {
+        if (state_data.ITEM.hasOwnProperty(itemId)) {
+          var itemAttr = JSON.parse(state_data.ITEM[itemId]);
+          var newI = Game.ItemGenerator.create(itemAttr._generator_template_key,itemAttr._id);
+          Game.DATASTORE.ITEM[itemId] = newI;
+          Game.DATASTORE.ITEM[itemId].fromJSON(state_data.ITEM[itemId]);
         }
       }
 
@@ -158,16 +164,20 @@ Game.UIMode.gamePersistence = {
      }
    },
    newGame: function () {
-     Game.DATASTORE = {};
-     Game.DATASTORE.MAP = {};
-     Game.DATASTORE.ENTITY = {};
-     Game.initializeTimingEngine();
+     this._resetGameDataStructures();
      Game.setRandomSeed(5 + Math.floor(Game.TRANSIENT_RNG.getUniform()*100000));
      Game.UIMode.gamePlay.setupNewGame();
      Game.Message.sendMessage('new game started');
      Game.switchUiMode('gamePlay');
 
      Game.Message.sendMessage("You work on the top floor of an ice cream factory. Unfortunately, there has been a nuclear explosion nearby and all the ice cream has come to life. Fight your way out!");
+   },
+   _resetGameDataStructures: function () {
+     Game.DATASTORE = {};
+     Game.DATASTORE.MAP = {};
+     Game.DATASTORE.ENTITY = {};
+     Game.DATASTORE.ITEM = {};
+     Game.initializeTimingEngine();
    },
    localStorageAvailable: function() {
      try {
@@ -336,7 +346,7 @@ Game.UIMode.gamePlay = {
       Game.addUiMode('LAYER_textReading');
     }
     if (tookTurn) {
-      this.getAvatar().raiseEntityEvent('actionDone');
+      this.getAvatar().raiseSymbolActiveEvent('actionDone');
       Game.Message.ageMessages();
       return true;
     }
@@ -360,7 +370,7 @@ Game.UIMode.gamePlay = {
   },
   moveAvatar: function (pdx,pdy) {
     // console.log('moveAvatar '+pdx+','+pdy);
-    var moveResp = this.getAvatar().raiseEntityEvent('adjacentMove',{dx:pdx,dy:pdy});
+    var moveResp = this.getAvatar().raiseSymbolActiveEvent('adjacentMove',{dx:pdx,dy:pdy});
     // if (this.getAvatar().tryWalk(this.getMap(),dx,dy)) {
     if (moveResp.madeAdjacentMove && moveResp.madeAdjacentMove[0]) {
       this.setCameraToAvatar();
@@ -373,16 +383,24 @@ Game.UIMode.gamePlay = {
     this.setMap(new Game.Map('caves1'));
     this.setAvatar(Game.EntityGenerator.create('avatar'));
 
-    this.getMap().addEntity(this.getAvatar(),this.getMap().getRandomWalkableLocation());
+    this.getMap().addEntity(this.getAvatar(),this.getMap().getRandomWalkablePosition());
     this.setCameraToAvatar();
 
     // dev code - just add some entities to the map
+    var itemPos = '';
     for (var ecount = 0; ecount < 4; ecount++) {
-      this.getMap().addEntity(Game.EntityGenerator.create('moss'),this.getMap().getRandomWalkableLocation());
-      this.getMap().addEntity(Game.EntityGenerator.create('newt'),this.getMap().getRandomWalkableLocation());
-      this.getMap().addEntity(Game.EntityGenerator.create('angry squirrel'),this.getMap().getRandomWalkableLocation());
-      this.getMap().addEntity(Game.EntityGenerator.create('attack slug'),this.getMap().getRandomWalkableLocation());
+      this.getMap().addEntity(Game.EntityGenerator.create('moss'),this.getMap().getRandomWalkablePosition());
+      this.getMap().addEntity(Game.EntityGenerator.create('newt'),this.getMap().getRandomWalkablePosition());
+      this.getMap().addEntity(Game.EntityGenerator.create('angry squirrel'),this.getMap().getRandomWalkablePosition());
+      this.getMap().addEntity(Game.EntityGenerator.create('attack slug'),this.getMap().getRandomWalkablePosition());
+
+      itemPos = this.getMap().getRandomWalkablePosition();
+      this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
     }
+    this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
+    // end dev code
+    ////////////////////////////////////////////////////
+
     Game.Message.sendMessage("Kill 3 or more attack slugs to win!");
   },
   toJSON: function() {
