@@ -26,5 +26,6 @@ floor each time the player ascends/descends stairs. The player will be placed in
 after changing floors. There should be some extra field that will store the floor that the player is
 on. Enemies can be generated based on which floor the player occupies. The player can press enter
 to interact with a staircase.
-  Current bug: sometimes it seems that the stairs generates in an unreachable position. I'm not sure
-whether this can be fixed by using another map generation algorithm.
+  Current bugs: sometimes it seems that the stairs generates in an unreachable position. I'm not sure
+whether this can be fixed by using another map generation algorithm. Also for some reason the FoV stuff
+shuts off whenever the avatar walks onto the staircase.

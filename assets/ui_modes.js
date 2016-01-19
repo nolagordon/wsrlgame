@@ -339,12 +339,15 @@ Game.UIMode.gamePlay = {
       // If so, change their floor accordingly
       var avatarPos = this.getAvatar().getPos();
       if (this.getMap().getTile(avatarPos).getName() === 'stairsDown'){
-        Game.Message.sendMessage("Congratulations! You escaped!");
-        Game.switchUiMode('gameWin');
+        if (this.getMap().getFloorNum() === 1) {
+          Game.Message.sendMessage("Congratulations! You escaped!");
+          Game.switchUiMode('gameWin');
+        } else {
+          this.generateNewLevel(this.getMap().getFloorNum()-1);
+        }
       } else {
         Game.Message.sendMessage("There are no stairs to climb here");
       }
-
     }
 
     if (tookTurn) {
@@ -380,10 +383,9 @@ Game.UIMode.gamePlay = {
     }
     return false;
   },
-  setupNewGame: function () {
-    Game.Message.clearMessages();
+  generateNewLevel: function(floorNum) {
     this.setMap(new Game.Map('caves1'));
-    this.setAvatar(Game.EntityGenerator.create('avatar'));
+    this.getMap().setFloorNum(floorNum);
 
     this.getMap().addEntity(this.getAvatar(),this.getMap().getRandomWalkableLocation());
     this.setCameraToAvatar();
@@ -395,6 +397,13 @@ Game.UIMode.gamePlay = {
       this.getMap().addEntity(Game.EntityGenerator.create('angry squirrel'),this.getMap().getRandomWalkableLocation());
       this.getMap().addEntity(Game.EntityGenerator.create('attack slug'),this.getMap().getRandomWalkableLocation());
     }
+  },
+  setupNewGame: function () {
+    // Set the current floor to the max number of floors we want in the game
+    // TODO: make this a constant somewhere else in the code?
+    Game.Message.clearMessages();
+    this.setAvatar(Game.EntityGenerator.create('avatar'));
+    this.generateNewLevel(7);
     Game.Message.sendMessage("Kill 3 or more attack slugs to win!");
   },
   toJSON: function() {

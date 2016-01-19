@@ -9,6 +9,7 @@ Game.Map = function (mapTileSetName,presetId) {
     _mapTileSetName: mapTileSetName,
     _width: this._tiles.length,
     _height: this._tiles[0].length,
+    _floorNum: -1,
     _entitiesByLocation: {},
     _locationsByEntity: {}
   };
@@ -17,6 +18,14 @@ Game.Map = function (mapTileSetName,presetId) {
   this.setUpFov();
 
   Game.DATASTORE.MAP[this.attr._id] = this;
+};
+
+Game.Map.prototype.setFloorNum = function(n) {
+  this.attr._floorNum = n;
+};
+
+Game.Map.prototype.getFloorNum = function() {
+  return this.attr._floorNum;
 };
 
 Game.Map.prototype.setUpFov = function () {
