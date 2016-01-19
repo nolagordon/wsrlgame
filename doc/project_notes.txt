@@ -33,3 +33,6 @@ shuts off whenever the avatar walks onto the staircase.
 Right now, we support multiple floor levels, but there's a chance that the player may get stuck
 on a level with no reachable staircase. The player wins the game when they reach floor one.
 the player can only descend stairs, and can't ascend stairs.
+
+CONCERN: Do we need to delete the entities on the map before we switch floors? Will there be any adverse
+affects on our game if we don't?

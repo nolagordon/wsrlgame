@@ -34,4 +34,4 @@ Game.Tile.prototype.isTransparent = function () {
 Game.Tile.nullTile = new Game.Tile({name:'nullTile'});
 Game.Tile.floorTile = new Game.Tile({name:'floor',chr:'.',walkable:true,transparent:true});
 Game.Tile.wallTile = new Game.Tile({name:'wall',chr:'#'});
-Game.Tile.stairsDownTile = new Game.Tile({name:'stairsDown',chr:'>',walkable:true});
+Game.Tile.stairsDownTile = new Game.Tile({name:'stairsDown',chr:'>',walkable:true,transparent:true});
