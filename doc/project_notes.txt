@@ -29,3 +29,7 @@ to interact with a staircase.
   Current bugs: sometimes it seems that the stairs generates in an unreachable position. I'm not sure
 whether this can be fixed by using another map generation algorithm. Also for some reason the FoV stuff
 shuts off whenever the avatar walks onto the staircase.
+
+Right now, we support multiple floor levels, but there's a chance that the player may get stuck
+on a level with no reachable staircase. The player wins the game when they reach floor one.
+the player can only descend stairs, and can't ascend stairs.

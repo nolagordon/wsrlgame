@@ -397,13 +397,15 @@ Game.UIMode.gamePlay = {
       this.getMap().addEntity(Game.EntityGenerator.create('angry squirrel'),this.getMap().getRandomWalkableLocation());
       this.getMap().addEntity(Game.EntityGenerator.create('attack slug'),this.getMap().getRandomWalkableLocation());
     }
+
+    Game.renderMain();
   },
   setupNewGame: function () {
     // Set the current floor to the max number of floors we want in the game
     // TODO: make this a constant somewhere else in the code?
     Game.Message.clearMessages();
     this.setAvatar(Game.EntityGenerator.create('avatar'));
-    this.generateNewLevel(7);
+    this.generateNewLevel(2);
     Game.Message.sendMessage("Kill 3 or more attack slugs to win!");
   },
   toJSON: function() {

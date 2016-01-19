@@ -70,7 +70,7 @@ Game.EntityMixin.PlayerActor = {
         setTimeout(function() { // NOTE: this tiny delay ensures event calls happen in the right order (yes, this is a bit of a hack... might be better to make a postChronicalKill event, though that's also a bit of a hack...)
           var victoryCheckResp = self.raiseEntityEvent('calcKillsOf',{entityName:'attack slug'});
           if (Game.util.compactNumberArray_add(victoryCheckResp.killCount) >= 3) {
-            Game.switchUiMode("gameWin");
+            //Game.switchUiMode("gameWin");
           }
         },1);
       },
