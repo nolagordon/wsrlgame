@@ -678,7 +678,7 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
       // If we have selected an item, show a +, else show a space between the selectionLetter and the item's name.
       var selectionState = (this._canSelectItem && this._canSelectMultipleItems && this._selectedItemIdxs[trueItemIndex]) ? '+' : ' ';
 
-      var item_symbol = this._displayItems[i].getRepresentation()+Game.UIMode.DEFAULT_COLOR_STR;
+      var item_symbol = this._displayItems[i].getRepresentation("#000")+Game.UIMode.DEFAULT_COLOR_STR;
       display.drawText(0, 1 + row, Game.UIMode.DEFAULT_COLOR_STR + selectionLetter + ' ' + selectionState + ' ' + item_symbol + ' ' +this._displayItems[i].getName());
       row++;
       this._numItemsShown++;
