@@ -121,7 +121,7 @@ Game.EntityMixin.PlayerActor = {
       'madeKill': function(evtData) {
         var self = this;
         setTimeout(function() { // NOTE: this tiny delay ensures event calls happen in the right order (yes, this is a bit of a hack... might be better to make a postChronicalKill event, though that's also a bit of a hack...)
-          var victoryCheckResp = self.raiseSymbolActiveEvent('calcKillsOf',{entityName:'attack slug'});
+          var victoryCheckResp = self.raiseSymbolActiveEvent('calcKillsOf',{entityName:'chocolate scoop'});
           if (Game.util.compactNumberArray_add(victoryCheckResp.killCount) >= 3) {
             Game.switchUiMode("gameWin");
           }
