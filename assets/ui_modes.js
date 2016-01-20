@@ -431,7 +431,7 @@ Game.UIMode.gamePlay = {
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('apple'),itemPos);
     }
-
+    
     Game.Message.sendMessage("Kill 3 or more attack chocolate scoops to win!");
     this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
 
@@ -666,7 +666,7 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
     row++;
   }
   if (this._displayItemsStartIndex > 0) {
-    display.drawText(0, 1 + row, '%c{black}%b{blue}[ for more');
+    display.drawText(0, 1 + row, '%c{#fff}%b{#000}[ for more');
     row++;
   }
   this._numItemsShown = 0;
@@ -685,7 +685,7 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
     }
   }
   if ((this._displayItemsStartIndex + this._displayItems.length) < this._itemIdList.length) {
-    display.drawText(0, 1 + row, '%c{black}%b{blue}] for more');
+    display.drawText(0, 1 + row, '%c{#fff}%b{#000}] for more');
     row++;
   }
 };
