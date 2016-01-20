@@ -219,6 +219,11 @@ Game.KeyBinding = {
       numpad: {label:'d' ,inputMatch:ROT.VK_D ,inputType:'keydown' ,inputMetaShift:false  ,inputMetaCtrl:false} ,
       waxd  : {label:'D' ,inputMatch:ROT.VK_D ,inputType:'keydown' ,inputMetaShift:true  ,inputMetaCtrl:false}
     },
+    EXAMINE : {action_group:'inventory' ,guid:Game.util.uniqueId() ,ordering:5.2 ,short:'examine' ,long :'get details about a carried item',
+      numpad: {label:'x' ,inputMatch:ROT.VK_X ,inputType:'keydown' ,inputMetaShift:false  ,inputMetaCtrl:false},
+      waxd  : {label:'X' ,inputMatch:ROT.VK_X ,inputType:'keydown' ,inputMetaShift:true  ,inputMetaCtrl:false},
+      LAYER_inventoryListing: {label:'x' ,inputMatch:ROT.VK_X ,inputType:'keydown' ,inputMetaShift:false  ,inputMetaCtrl:false}
+    },
 
     DATA_NAV_UP   : {action_group:'data_nav' ,guid:Game.util.uniqueId() ,ordering:1.1 ,short:'up'   ,long :'scroll content up'   ,
       all: {label:'['     ,inputMatch:'['      ,inputType:'keypress' ,inputMetaShift:false ,inputMetaCtrl:false}

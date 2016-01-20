@@ -2,6 +2,7 @@ Game.ALL_ENTITIES = {};
 Game.EntityGenerator = new Game.Generator('entities',Game.Entity);
 Game.EntityGenerator.learn({
   name: 'avatar',
+  description: 'our Hero!',
   chr:'\u2744',
   fg:'#2457c5',
   sightRadius: 5,
@@ -14,6 +15,7 @@ Game.EntityGenerator.learn({
 
 Game.EntityGenerator.learn({
   name: 'ice',
+  description: 'A large ground-covering patch of frozen water',
   chr:'%',
   fg:'#fff',
   maxHp: 1,
@@ -22,6 +24,7 @@ Game.EntityGenerator.learn({
 
 Game.EntityGenerator.learn({
   name: 'vanilla scoop',
+  description: 'A classic scoop of vanilla ice cream. ',
   chr:'O',
   fg:'#fff',
   maxHp: 2,
@@ -30,6 +33,7 @@ Game.EntityGenerator.learn({
 
 Game.EntityGenerator.learn({
   name: 'strawberry scoop',
+  description: "A scoop of strawberry ice cream that will attack if you get in its way",
   chr:'O',
   fg:'#ee9dda',
   maxHp: 2,
@@ -42,6 +46,7 @@ Game.EntityGenerator.learn({
 
 Game.EntityGenerator.learn({
   name: 'chocolate scoop',
+  description: 'Beware the rage of this highly trained scoop of chocolate ice cream',
   chr:'O',
   fg:'#86592d',
   maxHp: 4,
