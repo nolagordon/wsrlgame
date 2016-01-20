@@ -222,9 +222,7 @@ Game.EntityMixin.FoodConsumer = {
     if (frac < 0.45) { return '%c{#ffccff}%b{#000}hungry'; }
     if (frac < 0.65) { return '%c{#fff}%b{#000}peckish'; }
     if (frac < 0.95) { return '%c{#fff}%b{#000}full'; }
-    return '%c{#090}%b{#550}*stuffed*';
-
-
+    return '%c{#33bbff}%b{#000}*stuffed*';
   }
 };
 

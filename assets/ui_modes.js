@@ -350,6 +350,8 @@ Game.UIMode.gamePlay = {
       }
     } else if (actionBinding.actionKey == 'DROP') {
       Game.addUiMode('LAYER_inventoryDrop');
+    } else if (actionBinding.actionKey == 'EAT') {
+      Game.addUiMode('LAYER_inventoryEat');
     } else if (actionBinding.actionKey == 'EXAMINE') {
       Game.addUiMode('LAYER_inventoryExamine');
     }
@@ -524,8 +526,8 @@ Game.UIMode.LAYER_itemListing = function(template) {
 
   this._caption = template.caption || 'Items';
   this._processingFunction = template.processingFunction;
-  this._filterListedItemsOnFunction = template.filterListedItemsOn || function(x) {
-    return x;
+  this._filterListedItemsOnFunction = template.filterListedItemsOn || function(itemId) {
+    return itemId;
   };
   this._canSelectItem = template.canSelect || false;
   this._canSelectMultipleItems = template.canSelectMultipleItems || false;
@@ -652,6 +654,11 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
 
   display.drawText(0, 0, Game.UIMode.DEFAULT_COLOR_STR + this.getCaptionText());
 
+  if (this._displayItems.length < 1) {
+    display.drawText(0, 2, Game.UIMode.DEFAULT_COLOR_STR + 'nothing for '+ this.getCaptionText().toLowerCase());
+    return;
+  }
+
   var row = 0;
 
   if (this._hasNoItemOption) {
@@ -659,7 +666,7 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
     row++;
   }
   if (this._displayItemsStartIndex > 0) {
-    display.drawText(0, 1 + row, '%c{black}%b{yellow}[ for more');
+    display.drawText(0, 1 + row, '%c{black}%b{blue}[ for more');
     row++;
   }
   this._numItemsShown = 0;
@@ -678,7 +685,7 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
     }
   }
   if ((this._displayItemsStartIndex + this._displayItems.length) < this._itemIdList.length) {
-    display.drawText(0, 1 + row, '%c{black}%b{yellow}] for more');
+    display.drawText(0, 1 + row, '%c{black}%b{blue}] for more');
     row++;
   }
 };
@@ -691,7 +698,7 @@ Game.UIMode.LAYER_itemListing.prototype.executeProcessingFunction = function() {
       selectedItemIds.push(this._itemIdList[selectionIndex]);
     }
   }
-  Game.removeUiMode();
+  Game.removeUiModeAllLayers();
   // Call the processing function and end the player's turn if it returns true.
   if (this._processingFunction(selectedItemIds)) {
     Game.getAvatar().raiseSymbolActiveEvent('actionDone');
@@ -808,6 +815,14 @@ Game.UIMode.LAYER_inventoryListing.handleInput = function (inputType,inputData) 
       Game.addUiMode('LAYER_inventoryExamine');
       return false;
     }
+    if (actionBinding.actionKey == 'DROP') {
+      Game.addUiMode('LAYER_inventoryDrop');
+      return false;
+    }
+    if (actionBinding.actionKey == 'EAT') {
+      Game.addUiMode('LAYER_inventoryEat');
+      return false;
+    }
   }
   return Game.UIMode.LAYER_itemListing.prototype.handleInput.call(this,inputType,inputData);
 };
@@ -831,5 +846,26 @@ Game.UIMode.LAYER_inventoryExamine = new Game.UIMode.LAYER_itemListing({
   }
 });
 Game.UIMode.LAYER_inventoryExamine.doSetup = function () {
+  this.setup({itemIdList: Game.getAvatar().getInventoryItemIds()});
+};
+
+Game.UIMode.LAYER_inventoryEat = new Game.UIMode.LAYER_itemListing({
+  caption: 'Eat',
+  canSelect: true,
+  keyBindingName: 'LAYER_inventoryEat',
+  filterListedItemsOn: function(itemId) {
+    return  Game.DATASTORE.ITEM[itemId].hasMixin('Food');
+  },
+  processingFunction: function (selectedItemIds) {
+    if (selectedItemIds[0]) {
+      var foodItem = Game.getAvatar().extractInventoryItems([selectedItemIds[0]])[0];
+//        Game.util.cdebug(foodItem);
+      Game.getAvatar().eatFood(foodItem.getFoodValue());
+      return true;
+    }
+    return false;
+  }
+});
+Game.UIMode.LAYER_inventoryEat.doSetup = function () {
   this.setup({itemIdList: Game.getAvatar().getInventoryItemIds()});
 };
