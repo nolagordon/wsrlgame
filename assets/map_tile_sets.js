@@ -1,7 +1,7 @@
 Game.MapTileSets = {
   caves1: {
-    _width: 100,
-    _height: 100,
+    _width: 50,
+    _height: 50,
     getMapTiles: function () {
       var mapTiles = Game.util.init2DArray(this._width,this._height,Game.Tile.nullTile);
       /*var generator = new ROT.Map.Cellular(this._width,this._height);
@@ -23,15 +23,7 @@ Game.MapTileSets = {
       });
 
 
-      // Choose a random floor tile to act as stairs down to the next level
-      // NOTE: may need to alter later to make sure the stairs are reachable
-      var tX,tY;
-      do {
-        tX = Game.util.randomInt(0,this._width - 1);
-        tY = Game.util.randomInt(0,this._height - 1);
-      } while (! mapTiles[tX][tY].isWalkable);
-      mapTiles[tX][tY] = Game.Tile.stairsDownTile;
-      console.log("Stairs location is x: " + tX + ", y: " + tY);
+
 
       return mapTiles;
       */
@@ -44,6 +36,15 @@ Game.MapTileSets = {
           mapTiles[x][y] = Game.Tile.wallTile;
         }
       });
+
+      /*var tX,tY;
+      do {
+        tX = Game.util.randomInt(0,this._width - 1);
+        tY = Game.util.randomInt(0,this._height - 1);
+      } while (! mapTiles[tX][tY].isWalkable);
+      mapTiles[tX][tY] = Game.Tile.stairsDownTile;
+      console.log("Stairs location is x: " + tX + ", y: " + tY);
+      */
 
       return mapTiles;
     }

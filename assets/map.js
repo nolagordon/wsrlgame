@@ -21,6 +21,25 @@ Game.Map = function (mapTileSetName,presetId) {
   Game.DATASTORE.MAP[this.attr._id] = this;
 };
 
+// Add stairs to the map reachable from the given position
+Game.Map.prototype.addStairsReachableFrom = function(pos) {
+  // Choose a random floor tile to act as stairs down to the next level
+  // NOTE: may need to alter later to make sure the stairs are reachable
+  var stairsPos = this.getRandomWalkablePosition();
+  this._tiles[stairsPos.x][stairsPos.y] = Game.Tile.stairsDownTile;
+  var path = ROT.Path.Dijkstra(pos.x,pos.y);
+  console.dir(path);
+  //console.dir(path.compute(stairsPos.x,stairsPos.y));
+  /*var tX,tY;
+  do {
+    tX = Game.util.randomInt(0,this._width - 1);
+    tY = Game.util.randomInt(0,this._height - 1);
+  } while (! mapTiles[tX][tY].isWalkable);
+  mapTiles[tX][tY] = Game.Tile.stairsDownTile;
+  */
+  console.log("Stairs location is x: " + stairsPos.x + ", y: " + stairsPos.y);
+};
+
 Game.Map.prototype.setFloorNum = function(n) {
   this.attr._floorNum = n;
 };

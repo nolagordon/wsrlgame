@@ -2,6 +2,7 @@ Game.UIMode = {};
 Game.UIMode.DEFAULT_COLOR_FG = '#cceeff';
 Game.UIMode.DEFAULT_COLOR_BG = '#19afdb';
 Game.UIMode.DEFAULT_COLOR_STR = '%c{'+'#fff'+'}%b{'+'#000'+'}';
+Game.UIMode.TOTAL_FLOORS = 3;
 
 //#############################################################################
 //#############################################################################
@@ -429,6 +430,7 @@ Game.UIMode.gamePlay = {
     this.getMap().setFloorNum(floorNum);
 
     this.getMap().addEntity(this.getAvatar(),this.getMap().getRandomWalkablePosition());
+    this.getMap().addStairsReachableFrom(this.getAvatar().getPos());
     this.setCameraToAvatar();
 
     var itemPos = '';
@@ -436,8 +438,8 @@ Game.UIMode.gamePlay = {
     for (var ecount = 0; ecount < 20; ecount++) {
       this.getMap().addEntity(Game.EntityGenerator.create('ice'),this.getMap().getRandomWalkablePosition());
       this.getMap().addEntity(Game.EntityGenerator.create('vanilla scoop'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
 
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
@@ -445,7 +447,7 @@ Game.UIMode.gamePlay = {
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('apple'),itemPos);
     }
-    
+
     Game.Message.sendMessage("Kill 3 or more attack chocolate scoops to win!");
     this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
 
@@ -463,8 +465,7 @@ Game.UIMode.gamePlay = {
     // TODO: make this a constant somewhere else in the code?
     Game.Message.clearMessages();
     this.setAvatar(Game.EntityGenerator.create('avatar'));
-    this.generateNewLevel(2);
-    Game.Message.sendMessage("Kill 3 or more attack slugs to win!");
+    this.generateNewLevel(Game.UIMode.TOTAL_FLOORS);
   },
   toJSON: function() {
     return Game.UIMode.gamePersistence.BASE_toJSON.call(this);
