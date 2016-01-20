@@ -1,10 +1,10 @@
 Game.MapTileSets = {
   caves1: {
-    _width: 30,
-    _height: 12,
+    _width: 100,
+    _height: 100,
     getMapTiles: function () {
       var mapTiles = Game.util.init2DArray(this._width,this._height,Game.Tile.nullTile);
-      var generator = new ROT.Map.Cellular(this._width,this._height);
+      /*var generator = new ROT.Map.Cellular(this._width,this._height);
       generator.randomize(0.6);
 
       // repeated cellular automata process
@@ -32,6 +32,18 @@ Game.MapTileSets = {
       } while (! mapTiles[tX][tY].isWalkable);
       mapTiles[tX][tY] = Game.Tile.stairsDownTile;
       console.log("Stairs location is x: " + tX + ", y: " + tY);
+
+      return mapTiles;
+      */
+
+      var map = new ROT.Map.Rogue(this._width,this._height);
+      map.create(function(x,y,v) {
+        if (v===1) {
+          mapTiles[x][y] = Game.Tile.floorTile;
+        } else {
+          mapTiles[x][y] = Game.Tile.wallTile;
+        }
+      });
 
       return mapTiles;
     }

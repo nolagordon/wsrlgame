@@ -42,7 +42,11 @@ Game.EntityMixin.PlayerMessager = {
       },
 
       'killed': function(evtData) {
-        Game.Message.sendMessage('you were killed by the '+evtData.killedBy.getName());
+        if (typeof evtData.killedBy == 'string') {
+          Game.Message.sendMessage('you were killed by '+evtData.killedBy);
+        } else {
+          Game.Message.sendMessage('you were killed by the '+evtData.killedBy.getName());
+        }
         Game.renderMessage();
         Game.Message.ageMessages();
       },
@@ -106,8 +110,11 @@ Game.EntityMixin.PlayerActor = {
     listeners: {
       'actionDone': function(evtData) {
         Game.Scheduler.setDuration(this.getCurrentActionDuration());
+        this.raiseSymbolActiveEvent('getHungrier',{duration:this.getCurrentActionDuration()});
         this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-5,5));
-        setTimeout(function() {Game.TimeEngine.unlock();},1); // NOTE: this tiny delay ensures console output happens in the right order, which in turn means I have confidence in the turn-taking order of the various entities
+        setTimeout(function() {
+          Game.TimeEngine.unlock();
+        },1); // NOTE: this tiny delay ensures console output happens in the right order, which in turn means I have confidence in the turn-taking order of the various entities
         Game.renderMessage();
         // console.log("end player acting");
       },
@@ -122,6 +129,7 @@ Game.EntityMixin.PlayerActor = {
       },
       'killed': function(evtData) {
         //Game.TimeEngine.lock();
+        Game.DeadAvatar = this;
         Game.switchUiMode("gameLose");
       }
     }
@@ -155,6 +163,66 @@ Game.EntityMixin.PlayerActor = {
     Game.TimeEngine.lock();
     // console.log("player post-lock engine lock state is "+Game.TimeEngine._lock);
     this.isActing(false);
+  }
+};
+
+Game.EntityMixin.FoodConsumer = {
+  META: {
+    mixinName: 'FoodConsumer',
+    mixinGroup: 'FoodConsumer',
+    stateNamespace: '_FoodConsumer_attr',
+    stateModel:  {
+      currentFood: 2000,
+      maxFood: 2000,
+      foodConsumedPer1000Ticks: 1
+    },
+    init: function (template) {
+      this.attr._FoodConsumer_attr.maxFood = template.maxFood || 2000;
+      this.attr._FoodConsumer_attr.currentFood = template.currentFood || (this.attr._FoodConsumer_attr.maxFood*0.9);
+      this.attr._FoodConsumer_attr.foodConsumedPer1000Ticks = template.foodConsumedPer1000Ticks || 1;
+    },
+    listeners: {
+      'getHungrier': function(evtData) {
+        this.getHungrierBy(this.attr._FoodConsumer_attr.foodConsumedPer1000Ticks * evtData.duration/1000);
+      }
+    }
+  },
+  getMaxFood: function () {
+    return this.attr._FoodConsumer_attr.maxFood;
+  },
+  setMaxFood: function (n) {
+    this.attr._FoodConsumer_attr.maxFood = n;
+  },
+  getCurFood: function () {
+    return this.attr._FoodConsumer_attr.currentFood;
+  },
+  setCurFood: function (n) {
+    this.attr._FoodConsumer_attr.currentFood = n;
+  },
+  getFoodConsumedPer1000: function () {
+    return this.attr._FoodConsumer_attr.foodConsumedPer1000Ticks;
+  },
+  setFoodConsumedPer1000: function (n) {
+    this.attr._FoodConsumer_attr.foodConsumedPer1000Ticks = n;
+  },
+  eatFood: function (foodAmt) {
+    this.attr._FoodConsumer_attr.currentFood += foodAmt;
+    if (this.attr._FoodConsumer_attr.currentFood > this.attr._FoodConsumer_attr.maxFood) {this.attr._FoodConsumer_attr.currentFood = this.attr._FoodConsumer_attr.maxFood;}
+  },
+  getHungrierBy: function (foodAmt) {
+    this.attr._FoodConsumer_attr.currentFood -= foodAmt;
+    if (this.attr._FoodConsumer_attr.currentFood < 0) {
+      this.raiseSymbolActiveEvent('killed',{killedBy: 'starvation'});
+    }
+  },
+  getHungerStateDescr: function () {
+    var frac = this.attr._FoodConsumer_attr.currentFood/this.attr._FoodConsumer_attr.maxFood;
+    if (frac < 0.1) { return '%c{#e600e5}%b{#000}*STARVING*'; }
+    if (frac < 0.25) { return '%c{#ff80ff}%b{#000}ravenous'; }
+    if (frac < 0.45) { return '%c{#ffccff}%b{#000}hungry'; }
+    if (frac < 0.65) { return '%c{#fff}%b{#000}peckish'; }
+    if (frac < 0.95) { return '%c{#fff}%b{#000}full'; }
+    return '%c{#33bbff}%b{#000}*stuffed*';
   }
 };
 
@@ -206,7 +274,8 @@ Game.EntityMixin.Chronicle = {
     stateModel:  {
       turnCounter: 0,
       killLog:{},
-      deathMessage:''
+      deathMessage:'',
+      killCount: 0
     },
     listeners: {
       'actionDone': function(evtData) {
@@ -217,7 +286,11 @@ Game.EntityMixin.Chronicle = {
         this.addKill(evtData.entKilled);
       },
       'killed': function(evtData) {
-        this.attr._Chronicle_attr.deathMessage = 'killed by '+evtData.killedBy.getName();
+        if (typeof evtData.killedBy == 'string') {
+          this.attr._Chronicle_attr.deathMessage = 'killed by '+evtData.killedBy;
+        } else {
+          this.attr._Chronicle_attr.deathMessage = 'killed by '+evtData.killedBy.getName();
+        }
       },
       'calcKillsOf': function (evtData) {
         return {killCount:this.getKillsOf(evtData.entityName)};
@@ -239,6 +312,9 @@ Game.EntityMixin.Chronicle = {
   getKillsOf: function (entityName) {
     return this.attr._Chronicle_attr.killLog[entityName] || 0;
   },
+  getTotalKills: function () {
+    return this.attr._Chronicle_attr.killCount;
+  },
   clearKills: function () {
     this.attr._Chronicle_attr.killLog = {};
   },
@@ -250,6 +326,7 @@ Game.EntityMixin.Chronicle = {
     } else {
       this.attr._Chronicle_attr.killLog[entName] = 1;
     }
+    this.attr._Chronicle_attr.killCount++;
   }
 };
 
@@ -300,46 +377,6 @@ Game.EntityMixin.HitPoints = {
   },
   recoverHits: function (amt) {
     this.attr._HitPoints_attr.curHp = Math.min(this.attr._HitPoints_attr.curHp+amt,this.attr._HitPoints_attr.maxHp);
-  }
-};
-
-Game.EntityMixin.Hunger = {
-  META: {
-    mixinName: 'Hunger',
-    mixinGroup: 'Hunger',
-    stateNamespace: '_Hunger_attr',
-    stateModel:  {
-      status: 4
-    },
-    init: function (template) {
-      this.attr._Hunger_attr.status = template.status || 4;
-    }
-  },
-  statusToString: function() {
-    switch(this.attr._Hunger_attr.status) {
-      case 1:
-        return "starving";
-      case 2:
-        return "ravenous";
-      case 3:
-        return "hungry";
-      case 4:
-        return "fine";
-      case 5:
-        return "full";
-      case 6:
-        return "stuffed";
-      case 7:
-        return "brainfreeze!";
-      default:
-        return "error: out of range";
-    }
-  },
-  getStatus: function () {
-    return this.attr._Hunger_attr.status;
-  },
-  setStatus: function (n) {
-    this.attr._Hunger_attr.status = n;
   }
 };
 

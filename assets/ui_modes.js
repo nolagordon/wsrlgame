@@ -1,7 +1,7 @@
 Game.UIMode = {};
-Game.UIMode.DEFAULT_COLOR_FG = '#fff';
-Game.UIMode.DEFAULT_COLOR_BG = '#000';
-Game.UIMode.DEFAULT_COLOR_STR = '%c{'+Game.UIMode.DEFAULT_COLOR_FG+'}%b{'+Game.UIMode.DEFAULT_COLOR_BG+'}';
+Game.UIMode.DEFAULT_COLOR_FG = '#cceeff';
+Game.UIMode.DEFAULT_COLOR_BG = '#19afdb';
+Game.UIMode.DEFAULT_COLOR_STR = '%c{'+'#fff'+'}%b{'+'#000'+'}';
 
 //#############################################################################
 //#############################################################################
@@ -346,14 +346,14 @@ Game.UIMode.gamePlay = {
         var pickupRes = this.getAvatar().pickupItems(pickUpList);
         tookTurn = pickupRes.numItemsPickedUp > 0;
       } else {
-        // var pickupRes = this.getAvatar().pickupItems(Game.util.objectArrayToIdArray(this.getAvatar().getMap().getItems(this.getAvatar().getPos())));
-        // tookTurn = pickupRes.numItemsPickedUp > 0;
         Game.addUiMode('LAYER_inventoryPickup');
       }
     } else if (actionBinding.actionKey == 'DROP') {
       Game.addUiMode('LAYER_inventoryDrop');
-      //var dropRes = this.getAvatar().dropItems(this.getAvatar().getItemIds());
-      //tookTurn = dropRes.numItemsDropped > 0;
+    } else if (actionBinding.actionKey == 'EAT') {
+      Game.addUiMode('LAYER_inventoryEat');
+    } else if (actionBinding.actionKey == 'EXAMINE') {
+      Game.addUiMode('LAYER_inventoryExamine');
     }
 
     else if (actionBinding.actionKey   == 'CHANGE_BINDINGS') {
@@ -396,11 +396,23 @@ Game.UIMode.gamePlay = {
     this.getAvatar().rememberCoords(seenCells);
   },
   renderAvatarInfo: function (display) {
-    display.drawText(1,2,Game.UIMode.DEFAULT_COLOR_STR+"avatar x: "+this.getAvatar().getX()); // DEV
-    display.drawText(1,3,Game.UIMode.DEFAULT_COLOR_STR+"avatar y: "+this.getAvatar().getY()); // DEV
-    display.drawText(1,4,Game.UIMode.DEFAULT_COLOR_STR+"turns: "+this.getAvatar().getTurns());
-    display.drawText(1,5,Game.UIMode.DEFAULT_COLOR_STR+"HP: "+this.getAvatar().getCurHp());
-    display.drawText(1,6,Game.UIMode.DEFAULT_COLOR_STR+"hunger: "+this.getAvatar().statusToString());
+    // feels like this should be encapsulated somewhere else, but I don't really know where - perhaps in the PlayerActor mixin?
+    var av = this.getAvatar();
+    var y = 0;
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"ATTACK");
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"Accuracy: "+av.getAttackHit());
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"Power: "+av.getAttackDamage());
+    y++;
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"DEFENSE");
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"Dodging: "+av.getAttackAvoid());
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"Toughness: "+av.getDamageMitigation());
+    y++;
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"LIFE: "+av.getCurHp()+"/"+av.getMaxHp());
+    y++;
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"MOVES: "+av.getTurns());
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"KILLS: "+av.getTotalKills());
+    y++;
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+av.getHungerStateDescr());
   },
   moveAvatar: function (pdx,pdy) {
     // console.log('moveAvatar '+pdx+','+pdy);
@@ -419,17 +431,23 @@ Game.UIMode.gamePlay = {
     this.getMap().addEntity(this.getAvatar(),this.getMap().getRandomWalkablePosition());
     this.setCameraToAvatar();
 
-    // dev code - just add some entities to the map
     var itemPos = '';
-    for (var ecount = 0; ecount < 4; ecount++) {
-      this.getMap().addEntity(Game.EntityGenerator.create('moss'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('newt'),this.getMap().getRandomWalkablePosition());
-      //this.getMap().addEntity(Game.EntityGenerator.create('angry squirrel'),this.getMap().getRandomWalkablePosition());
-      //this.getMap().addEntity(Game.EntityGenerator.create('attack slug'),this.getMap().getRandomWalkablePosition());
+    // dev code - just add some entities to the map
+    for (var ecount = 0; ecount < 20; ecount++) {
+      this.getMap().addEntity(Game.EntityGenerator.create('ice'),this.getMap().getRandomWalkablePosition());
+      this.getMap().addEntity(Game.EntityGenerator.create('vanilla scoop'),this.getMap().getRandomWalkablePosition());
+      this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
+      this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
 
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
+
+      itemPos = this.getMap().getRandomWalkablePosition();
+      this.getMap().addItem(Game.ItemGenerator.create('apple'),itemPos);
     }
+    
+    Game.Message.sendMessage("Kill 3 or more attack chocolate scoops to win!");
+    this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
 
     // for (var ti=0; ti<30;ti++) {
     //   Game.getAvatar().addInventoryItems([Game.ItemGenerator.create('rock')]);
@@ -531,8 +549,8 @@ Game.UIMode.LAYER_itemListing = function(template) {
 
   this._caption = template.caption || 'Items';
   this._processingFunction = template.processingFunction;
-  this._filterListedItemsOnFunction = template.filterListedItemsOn || function(x) {
-    return x;
+  this._filterListedItemsOnFunction = template.filterListedItemsOn || function(itemId) {
+    return itemId;
   };
   this._canSelectItem = template.canSelect || false;
   this._canSelectMultipleItems = template.canSelectMultipleItems || false;
@@ -659,6 +677,11 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
 
   display.drawText(0, 0, Game.UIMode.DEFAULT_COLOR_STR + this.getCaptionText());
 
+  if (this._displayItems.length < 1) {
+    display.drawText(0, 2, Game.UIMode.DEFAULT_COLOR_STR + 'nothing for '+ this.getCaptionText().toLowerCase());
+    return;
+  }
+
   var row = 0;
 
   if (this._hasNoItemOption) {
@@ -666,7 +689,7 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
     row++;
   }
   if (this._displayItemsStartIndex > 0) {
-    display.drawText(0, 1 + row, '%c{black}%b{yellow}[ for more');
+    display.drawText(0, 1 + row, '%c{#fff}%b{#000}[ for more');
     row++;
   }
   this._numItemsShown = 0;
@@ -678,14 +701,14 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
       // If we have selected an item, show a +, else show a space between the selectionLetter and the item's name.
       var selectionState = (this._canSelectItem && this._canSelectMultipleItems && this._selectedItemIdxs[trueItemIndex]) ? '+' : ' ';
 
-      var item_symbol = this._displayItems[i].getRepresentation()+Game.UIMode.DEFAULT_COLOR_STR;
+      var item_symbol = this._displayItems[i].getRepresentation("#000")+Game.UIMode.DEFAULT_COLOR_STR;
       display.drawText(0, 1 + row, Game.UIMode.DEFAULT_COLOR_STR + selectionLetter + ' ' + selectionState + ' ' + item_symbol + ' ' +this._displayItems[i].getName());
       row++;
       this._numItemsShown++;
     }
   }
   if ((this._displayItemsStartIndex + this._displayItems.length) < this._itemIdList.length) {
-    display.drawText(0, 1 + row, '%c{black}%b{yellow}] for more');
+    display.drawText(0, 1 + row, '%c{#fff}%b{#000}] for more');
     row++;
   }
 };
@@ -698,7 +721,7 @@ Game.UIMode.LAYER_itemListing.prototype.executeProcessingFunction = function() {
       selectedItemIds.push(this._itemIdList[selectionIndex]);
     }
   }
-  Game.removeUiMode();
+  Game.removeUiModeAllLayers();
   // Call the processing function and end the player's turn if it returns true.
   if (this._processingFunction(selectedItemIds)) {
     Game.getAvatar().raiseSymbolActiveEvent('actionDone');
@@ -805,4 +828,67 @@ Game.UIMode.LAYER_inventoryPickup = new Game.UIMode.LAYER_itemListing({
 });
 Game.UIMode.LAYER_inventoryPickup.doSetup = function () {
   this.setup({itemIdList: Game.util.objectArrayToIdArray(Game.getAvatar().getMap().getItems(Game.getAvatar().getPos()))});
+};
+
+Game.UIMode.LAYER_inventoryListing.handleInput = function (inputType,inputData) {
+  var actionBinding = Game.KeyBinding.getInputBinding(inputType,inputData);
+
+  if (actionBinding) {
+    if (actionBinding.actionKey == 'EXAMINE') {
+      Game.addUiMode('LAYER_inventoryExamine');
+      return false;
+    }
+    if (actionBinding.actionKey == 'DROP') {
+      Game.addUiMode('LAYER_inventoryDrop');
+      return false;
+    }
+    if (actionBinding.actionKey == 'EAT') {
+      Game.addUiMode('LAYER_inventoryEat');
+      return false;
+    }
+  }
+  return Game.UIMode.LAYER_itemListing.prototype.handleInput.call(this,inputType,inputData);
+};
+
+//-------------------
+
+Game.UIMode.LAYER_inventoryExamine = new Game.UIMode.LAYER_itemListing({
+  caption: 'Examine',
+  canSelect: true,
+  keyBindingName: 'LAYER_inventoryExamine',
+  processingFunction: function (selectedItemIds) {
+    //console.log('LAYER_inventoryExamine processing on '+selectedItemIds[0]);
+    if (selectedItemIds[0]) {
+      var d = Game.DATASTORE.ITEM[selectedItemIds[0]].getDetailedDescription();
+      //console.log('sending special message of '+d);
+      setTimeout(function() { // delay here because of the general refresh on exiting the layer
+        Game.specialMessage(d);
+      }, 2);
+    }
+    return false;
+  }
+});
+Game.UIMode.LAYER_inventoryExamine.doSetup = function () {
+  this.setup({itemIdList: Game.getAvatar().getInventoryItemIds()});
+};
+
+Game.UIMode.LAYER_inventoryEat = new Game.UIMode.LAYER_itemListing({
+  caption: 'Eat',
+  canSelect: true,
+  keyBindingName: 'LAYER_inventoryEat',
+  filterListedItemsOn: function(itemId) {
+    return  Game.DATASTORE.ITEM[itemId].hasMixin('Food');
+  },
+  processingFunction: function (selectedItemIds) {
+    if (selectedItemIds[0]) {
+      var foodItem = Game.getAvatar().extractInventoryItems([selectedItemIds[0]])[0];
+//        Game.util.cdebug(foodItem);
+      Game.getAvatar().eatFood(foodItem.getFoodValue());
+      return true;
+    }
+    return false;
+  }
+});
+Game.UIMode.LAYER_inventoryEat.doSetup = function () {
+  this.setup({itemIdList: Game.getAvatar().getInventoryItemIds()});
 };

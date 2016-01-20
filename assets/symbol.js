@@ -22,8 +22,10 @@ Game.Symbol.prototype.getColorDesignator = function(){
   return '%c{'+this.attr._fg+'}%b{'+this.attr._bg+'}';
 };
 
-Game.Symbol.prototype.getRepresentation = function() {
-  return '%c{' + this.attr._fg + '}%b{' + this.attr._bg + '}' + this.attr._char;
+// Allow for an optional parameter specifying bg color of item
+Game.Symbol.prototype.getRepresentation = function(bg) {
+  var bg_color = bg || this.attr._bg;
+  return '%c{' + this.attr._fg + '}%b{' + bg_color + '}' + this.attr._char;
 };
 
 Game.Symbol.prototype.draw = function (display,disp_x,disp_y,isMasked) {

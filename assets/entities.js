@@ -2,36 +2,41 @@ Game.ALL_ENTITIES = {};
 Game.EntityGenerator = new Game.Generator('entities',Game.Entity);
 Game.EntityGenerator.learn({
   name: 'avatar',
+  description: 'our Hero!',
   chr:'\u2744',
-  fg:'#dda',
-  sightRadius: 1000,
-  maxHp: 1000,
+  fg:'#2457c5',
+  sightRadius: 5,
+  maxHp: 10,
   attackAvoid: 1,
   attackDamage: 2,
   inventoryCapacity: 35,
-  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Hunger", "Chronicle", "MeleeAttacker", "MeleeDefender", "InventoryHolder"]
+  maxFood: 400,
+  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Chronicle", "MeleeAttacker", "MeleeDefender","InventoryHolder","FoodConsumer"]
 });
 
 Game.EntityGenerator.learn({
-  name: 'moss',
+  name: 'ice',
+  description: 'A large ground-covering patch of frozen water',
   chr:'%',
-  fg:'#6b6',
+  fg:'#fff',
   maxHp: 1,
   mixins: ["HitPoints"]
 });
 
 Game.EntityGenerator.learn({
-  name: 'newt',
-  chr:'~',
-  fg:'#f98',
+  name: 'vanilla scoop',
+  description: 'A classic scoop of vanilla ice cream. ',
+  chr:'O',
+  fg:'#fff',
   maxHp: 2,
   mixins: ["HitPoints", "WanderActor", "WalkerCorporeal"]
 });
 
 Game.EntityGenerator.learn({
-  name: 'angry squirrel',
-  chr:String.fromCharCode(163),
-  fg:'#aaa',
+  name: 'strawberry scoop',
+  description: "A scoop of strawberry ice cream that will attack if you get in its way",
+  chr:'O',
+  fg:'#ee9dda',
   maxHp: 2,
   attackPower: 1,
   attackAvoid: 2,
@@ -41,9 +46,10 @@ Game.EntityGenerator.learn({
 });
 
 Game.EntityGenerator.learn({
-  name: 'attack slug',
-  chr:'~',
-  fg:'#ff9',
+  name: 'chocolate scoop',
+  description: 'Beware the rage of this highly trained scoop of chocolate ice cream',
+  chr:'O',
+  fg:'#86592d',
   maxHp: 4,
   sightRadius: 4,
   attackPower: 1,
