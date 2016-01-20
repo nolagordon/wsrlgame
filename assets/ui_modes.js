@@ -390,12 +390,12 @@ Game.UIMode.gamePlay = {
     y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"Dodging: "+av.getAttackAvoid());
     y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"Toughness: "+av.getDamageMitigation());
     y++;
-    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"LIFE: ");
-    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"hp: "+av.getCurHp()+"/"+av.getMaxHp());
-    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"hunger: "+this.getAvatar().statusToString());
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"LIFE: "+av.getCurHp()+"/"+av.getMaxHp());
     y++;
     y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"MOVES: "+av.getTurns());
     y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+"KILLS: "+av.getTotalKills());
+    y++;
+    y += display.drawText(1,y,Game.UIMode.DEFAULT_COLOR_STR+av.getHungerStateDescr());
   },
   moveAvatar: function (pdx,pdy) {
     // console.log('moveAvatar '+pdx+','+pdy);
@@ -425,6 +425,9 @@ Game.UIMode.gamePlay = {
 
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
+
+      itemPos = this.getMap().getRandomWalkablePosition();
+      this.getMap().addItem(Game.ItemGenerator.create('apple'),itemPos);
     }
 
     Game.Message.sendMessage("Kill 3 or more attack chocolate scoops to win!");
