@@ -21,12 +21,82 @@ Game.Map = function (mapTileSetName,presetId) {
   Game.DATASTORE.MAP[this.attr._id] = this;
 };
 
+// Given a position on the map, returns an array of all neighboring walkable tiles
+Game.Map.prototype.getWalkableNeighbors = function(x,y) {
+  var neighbors = [];
+  if (this.isValidWalkableTile(x+1,y)) neighbors.push({x:x+1,y:y});
+  if (this.isValidWalkableTile(x+1,y+1)) neighbors.push({x:x+1,y:y+1});
+  if (this.isValidWalkableTile(x+1,y-1)) neighbors.push({x:x+1,y:y-1});
+  if (this.isValidWalkableTile(x,y+1)) neighbors.push({x:x,y:y+1});
+  if (this.isValidWalkableTile(x,y-1)) neighbors.push({x:x,y:y-1});
+  if (this.isValidWalkableTile(x-1,y)) neighbors.push({x:x-1,y:y});
+  if (this.isValidWalkableTile(x-1,y+1)) neighbors.push({x:x-1,y:y+1});
+  if (this.isValidWalkableTile(x-1,y-1)) neighbors.push({x:x-1,y:y-1});
+  return neighbors;
+};
+
+// Returns true if the tile in the given position is within the bounds of the map
+// and is walkable
+Game.Map.prototype.isValidWalkableTile = function(x,y) {
+  if ((x >= 0) && (x < this.attr._width) && (y >= 0) && (y < this.attr._height)) {
+    return this._tiles[x][y].isWalkable();
+  } else {
+    return false;
+  }
+};
+
+// Return true if the second position is reachable from the first position
+
+// Based on ROT.Path.Dijkstra
+Game.Map.prototype.reachable = function(fromPos, toPos) {
+  var todo = [fromPos];
+  var processed = {};
+
+  // While there are still unexplored positions
+  while (todo.length > 0) {
+
+    // Check whether we've already processed the top element of the todo stack
+    curPos = todo.pop();
+    var key = curPos.x + "," + curPos.y;
+
+    // If we've reached destination position, we know the two positions are reachable
+    // from each other and can return true
+    if (toPos.x === curPos.x && toPos.y === curPos.y) {
+      return true;
+
+    // Otherwise we need to continue searching
+    } else {
+      // Add all the current position's neighbors to our todo stack
+      var neighbors = this.getWalkableNeighbors(curPos.x,curPos.y);
+      for (var i = 0; i < neighbors.length; i++) {
+        // If we've already processed this tile, don't add to the todo stack
+        if ((neighbors[i].x + "," + neighbors[i].y) in processed) { continue; }
+        todo.push(neighbors[i]);
+      }
+      processed[key] = curPos;
+    }
+  }
+
+
+  // If we never find the fromPos, it is not reachable from toPos
+  return false;
+};
+
 // Add stairs to the map reachable from the given position
 Game.Map.prototype.addStairsReachableFrom = function(pos) {
   // Choose a random floor tile to act as stairs down to the next level
-  // NOTE: may need to alter later to make sure the stairs are reachable
-  var stairsPos = this.getRandomWalkablePosition();
+  var stairsPos;
 
+  // Select a random walkable position reachable from the given position
+  do {
+    stairsPos = this.getRandomWalkablePosition();
+  } while (!(this.reachable(stairsPos, pos)));
+
+  // Place the stairs at that position
+  this._tiles[stairsPos.x][stairsPos.y] = Game.Tile.stairsDownTile;
+  console.log("stars at " + stairsPos.x + ", " + stairsPos.y);
+
+/*
   // Place the stairs 100 steps away from the player's position
   var curX = pos.x, curY = pos.y;
   for (var i = 0; i < 100; i++) {
@@ -81,7 +151,8 @@ Game.Map.prototype.addStairsReachableFrom = function(pos) {
   } while (! mapTiles[tX][tY].isWalkable);
   mapTiles[tX][tY] = Game.Tile.stairsDownTile;
   */
-  console.log("Stairs location is x: " + curX + ", y: " + curX);
+//  console.log("Stairs location is x: " + curX + ", y: " + curX);
+
 };
 
 Game.Map.prototype.setFloorNum = function(n) {

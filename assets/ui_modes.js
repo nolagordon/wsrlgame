@@ -2,7 +2,7 @@ Game.UIMode = {};
 Game.UIMode.DEFAULT_COLOR_FG = '#cceeff';
 Game.UIMode.DEFAULT_COLOR_BG = '#19afdb';
 Game.UIMode.DEFAULT_COLOR_STR = '%c{'+'#fff'+'}%b{'+'#000'+'}';
-Game.UIMode.TOTAL_FLOORS = 3;
+Game.UIMode.TOTAL_FLOORS = 7;
 
 //#############################################################################
 //#############################################################################
@@ -170,7 +170,7 @@ Game.UIMode.gamePersistence = {
      this._resetGameDataStructures();
      Game.setRandomSeed(5 + Math.floor(Game.TRANSIENT_RNG.getUniform()*100000));
      Game.UIMode.gamePlay.setupNewGame();
-     Game.Message.sendMessage('new game started');
+     //Game.Message.sendMessage('new game started');
      Game.switchUiMode('gamePlay');
 
      Game.Message.sendMessage("You work on the top floor of an ice cream factory. Unfortunately, there has been a nuclear explosion nearby and all the ice cream has come to life. Fight your way out!");
@@ -374,6 +374,7 @@ Game.UIMode.gamePlay = {
           Game.switchUiMode('gameWin');
         } else {
           this.generateNewLevel(this.getMap().getFloorNum()-1);
+          Game.Message.sendMessage("The stairs you just climbed down look very icy from this angle. Climbing back up seems too dangerous.");
         }
       } else {
         Game.Message.sendMessage("There are no stairs to climb here");
@@ -430,7 +431,6 @@ Game.UIMode.gamePlay = {
     this.getMap().setFloorNum(floorNum);
 
     this.getMap().addEntity(this.getAvatar(),this.getMap().getRandomWalkablePosition());
-    this.getMap().addStairsReachableFrom(this.getAvatar().getPos());
     this.setCameraToAvatar();
 
     var itemPos = '';
@@ -438,8 +438,8 @@ Game.UIMode.gamePlay = {
     for (var ecount = 0; ecount < 20; ecount++) {
       this.getMap().addEntity(Game.EntityGenerator.create('ice'),this.getMap().getRandomWalkablePosition());
       this.getMap().addEntity(Game.EntityGenerator.create('vanilla scoop'),this.getMap().getRandomWalkablePosition());
-      //this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
-      //this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
+      this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
+      this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
 
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
@@ -448,8 +448,10 @@ Game.UIMode.gamePlay = {
       this.getMap().addItem(Game.ItemGenerator.create('apple'),itemPos);
     }
 
-    Game.Message.sendMessage("Kill 3 or more attack chocolate scoops to win!");
+    Game.Message.sendMessage("You've reached floor " + floorNum + ".");
     this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
+
+    this.getMap().addStairsReachableFrom(this.getAvatar().getPos());
 
     // for (var ti=0; ti<30;ti++) {
     //   Game.getAvatar().addInventoryItems([Game.ItemGenerator.create('rock')]);
