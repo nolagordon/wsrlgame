@@ -26,9 +26,53 @@ Game.Map.prototype.addStairsReachableFrom = function(pos) {
   // Choose a random floor tile to act as stairs down to the next level
   // NOTE: may need to alter later to make sure the stairs are reachable
   var stairsPos = this.getRandomWalkablePosition();
-  this._tiles[stairsPos.x][stairsPos.y] = Game.Tile.stairsDownTile;
-  var path = ROT.Path.Dijkstra(pos.x,pos.y);
-  console.dir(path);
+
+  // Place the stairs 100 steps away from the player's position
+  var curX = pos.x, curY = pos.y;
+  for (var i = 0; i < 100; i++) {
+    var nextX, nextY;
+    console.dir(this._tiles);
+    do {
+      // Choose a random number between 1 and 8 to choose next direction
+      // to move
+      var nextDir = Math.floor(Math.random() * 8) + 1;
+      if (nextDir === 1) {
+        nextX = curX - 1;
+        nextY = curY + 1;
+      } else if (nextDir === 2) {
+        nextX = curX;
+        nextY = curY + 1;
+      } else if (nextDir === 3) {
+        nextX = curX + 1;
+        nextY = curY + 1;
+      } else if (nextDir === 4) {
+        nextX = curX - 1;
+        nextY = curY;
+      } else if (nextDir === 5) {
+        nextX = curX + 1;
+        nextY = curY;
+      } else if (nextDir === 6) {
+        nextX = curX - 1;
+        nextY = curY - 1;
+      } else if (nextDir === 7) {
+        nextX = curX;
+        nextY = curY - 1;
+      } else if (nextDir === 8) {
+        nextX = curX + 1;
+        nextY = curY - 1;
+      }
+    } while ((nextX >= this.attr._width) ||
+            (nextY >= this.attr._height) ||
+            (nextX < 0) ||
+            (nextY < 0) ||
+            (!(this._tiles[nextX][nextY].isWalkable())));
+    curX = nextX;
+    curY = nextY;
+  }
+
+  this._tiles[curX][curY] = Game.Tile.stairsDownTile;
+  //var path = ROT.Path.Dijkstra(pos.x,pos.y);
+  //console.dir(path);
   //console.dir(path.compute(stairsPos.x,stairsPos.y));
   /*var tX,tY;
   do {
@@ -37,7 +81,7 @@ Game.Map.prototype.addStairsReachableFrom = function(pos) {
   } while (! mapTiles[tX][tY].isWalkable);
   mapTiles[tX][tY] = Game.Tile.stairsDownTile;
   */
-  console.log("Stairs location is x: " + stairsPos.x + ", y: " + stairsPos.y);
+  console.log("Stairs location is x: " + curX + ", y: " + curX);
 };
 
 Game.Map.prototype.setFloorNum = function(n) {

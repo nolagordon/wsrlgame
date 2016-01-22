@@ -34,5 +34,12 @@ Right now, we support multiple floor levels, but there's a chance that the playe
 on a level with no reachable staircase. The player wins the game when they reach floor one.
 the player can only descend stairs, and can't ascend stairs.
 
+To fix the issue where the stairs may not be reachable from the player, I changed the stair
+placement technique to take 100 steps starting from the player's position and then place the
+stairs wherever we end up. However, this seems to usually place the stairs very close to the
+player's starting position. Maybe there's a better way to place the stairs (i.e. favor taking
+a step that makes the stairs farther away from the player or increasing the number of steps
+the algorithm uses).
+
 CONCERN: Do we need to delete the entities on the map before we switch floors? Will there be any adverse
 affects on our game if we don't?
