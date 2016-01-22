@@ -123,8 +123,6 @@ var Game = {
 
     if ('renderAvatarInfo' in this.getCurUiMode()) {
       this.getCurUiMode().renderAvatarInfo(this.DISPLAYS.avatar.o);
-    } else {
-      this.DISPLAYS.avatar.o.drawText(2,1,"avatar display");
     }
   },
   renderMain: function() {
@@ -136,8 +134,6 @@ var Game = {
     console.dir(this.getCurUiMode());
     if ('renderOnMain' in this.getCurUiMode()) {
       this.getCurUiMode().renderOnMain(this.DISPLAYS.main.o);
-    } else {
-      this.DISPLAYS.main.o.drawText(2,1,"main display");
     }
   },
   renderMessage: function() {

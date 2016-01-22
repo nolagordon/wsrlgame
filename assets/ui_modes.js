@@ -2,7 +2,7 @@ Game.UIMode = {};
 Game.UIMode.DEFAULT_COLOR_FG = '#cceeff';
 Game.UIMode.DEFAULT_COLOR_BG = '#19afdb';
 Game.UIMode.DEFAULT_COLOR_STR = '%c{'+'#fff'+'}%b{'+'#000'+'}';
-Game.UIMode.TOTAL_FLOORS = 7;
+Game.UIMode.TOTAL_FLOORS = 3;
 
 //#############################################################################
 //#############################################################################
@@ -24,8 +24,8 @@ Game.UIMode.gameStart = {
     }
   },
   renderOnMain: function (display) {
-    display.drawText(1,1,Game.UIMode.DEFAULT_COLOR_STR+"game start");
-    display.drawText(1,3,Game.UIMode.DEFAULT_COLOR_STR+"press any key to continue");
+    display.drawText(1,1,Game.UIMode.DEFAULT_COLOR_STR+"You work on the top floor of an ice cream factory. Unfortunately, the recent nuclear explosion at the neighboring weapons factory has brought all of the ice cream to life. Escape or die a frosty death!");
+    display.drawText(1,8,Game.UIMode.DEFAULT_COLOR_STR+"Press any key to continue.");
   }
 };
 
@@ -173,7 +173,7 @@ Game.UIMode.gamePersistence = {
      //Game.Message.sendMessage('new game started');
      Game.switchUiMode('gamePlay');
 
-     Game.Message.sendMessage("You work on the top floor of an ice cream factory. Unfortunately, there has been a nuclear explosion nearby and all the ice cream has come to life. Fight your way out!");
+     Game.Message.sendMessage("Fight your way out of the ice cream factory!");
    },
    _resetGameDataStructures: function () {
      Game.DATASTORE = {};
