@@ -448,6 +448,11 @@ Game.UIMode.gamePlay = {
       this.getMap().addItem(Game.ItemGenerator.create('maraschino cherry'),itemPos);
     }
 
+    for (var ecount = 0; ecount < 50; ecount++) {
+      itemPos = this.getMap().getRandomWalkablePosition();
+      this.getMap().addItem(Game.ItemGenerator.create('maraschino cherry'),itemPos);
+    }
+
     Game.Message.sendMessage("You've reached floor " + floorNum + ".");
     this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
 
@@ -566,7 +571,7 @@ Game.UIMode.LAYER_itemListing = function(template) {
   this._selectedItemIdxs= [];
   this._displayItemsStartIndex = 0;
   this._displayItems = [];
-  this._displayMaxNum = Game.getDisplayHeight('main')-3;
+  this._displayMaxNum = Game.getDisplayHeight('main')-5;
   this._numItemsShown = 0;
 };
 
@@ -678,17 +683,19 @@ Game.UIMode.LAYER_itemListing.prototype.getCaptionText = function () {
 Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
   var selectionLetters = 'abcdefghijklmnopqrstuvwxyz';
 
-  display.drawText(0, 0, Game.UIMode.DEFAULT_COLOR_STR + this.getCaptionText());
+  display.drawText(0, 0, '%c{#fff}%b{#000}You have ' + Game.UIMode.gamePlay.getAvatar().getBalance() + ' sprinkles')
+
+  display.drawText(0, 2, Game.UIMode.DEFAULT_COLOR_STR + this.getCaptionText());
 
   if (this._displayItems.length < 1) {
-    display.drawText(0, 2, Game.UIMode.DEFAULT_COLOR_STR + 'nothing for '+ this.getCaptionText().toLowerCase());
+    display.drawText(0, 4, Game.UIMode.DEFAULT_COLOR_STR + 'nothing for '+ this.getCaptionText().toLowerCase());
     return;
   }
 
-  var row = 0;
+  var row = 2;
 
   if (this._hasNoItemOption) {
-    display.drawText(0, 1, Game.UIMode.DEFAULT_COLOR_STR + '0 - no item');
+    display.drawText(0, 1 + row, Game.UIMode.DEFAULT_COLOR_STR + '0 - no item');
     row++;
   }
   if (this._displayItemsStartIndex > 0) {
@@ -710,6 +717,9 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
       this._numItemsShown++;
     }
   }
+  console.log("display items start index: " + this._displayItemsStartIndex);
+  console.log("display items length: " + this._displayItems.length);
+  console.log("this._itemIdList.length: " + this._itemIdList.length);
   if ((this._displayItemsStartIndex + this._displayItems.length) < this._itemIdList.length) {
     display.drawText(0, 1 + row, '%c{#fff}%b{#000}] for more');
     row++;

@@ -190,7 +190,7 @@ Game.EntityMixin.ItemDropper = {
       }
     }
   }
-}
+};
 
 Game.EntityMixin.FoodConsumer = {
   META: {
@@ -584,6 +584,30 @@ Game.EntityMixin.MapMemory = {
   getRememberedCoordsForMap: function (mapId) {
     var mapKey=mapId || this.getMapId();
     return this.attr._MapMemory_attr.mapsHash[mapKey] || {};
+  }
+};
+
+Game.EntityMixin.MoneyHolder = {
+  META: {
+    mixinName: 'MoneyHolder',
+    mixinGroup: 'MoneyHolder',
+    stateNamespace: '_MoneyHolder_attr',
+    stateModel:  {
+      balance: 0
+    },
+    init: function (template) {
+      this.attr._MoneyHolder_attr.balance = template.balance || 0;
+    },
+    listeners: {    }
+  },
+  getBalance: function () {
+    return this.attr._MoneyHolder_attr.balance;
+  },
+  deposit: function (n) {
+    this.attr._MoneyHolder_attr.balance = this.attr._MoneyHolder_attr.balance + n;
+  },
+  withdraw: function (n) {
+    this.attr._MoneyHolder_attr.balance = this.attr._MoneyHolder_attr.balance - n;
   }
 };
 
