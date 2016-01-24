@@ -10,19 +10,37 @@ Game.ItemGenerator.learn({
 });
 
 Game.ItemGenerator.learn({
-  name: 'apple',
-  description: 'a nice juicy apple - yum!',
+  name: 'maraschino cherry',
+  description: 'a great topping for a sundae',
   chr:String.fromCharCode(174),
   fg:'#f32',
-  foodValue: 100,
+  foodValue: 70,
   mixins: ['Food']
 });
 
 Game.ItemGenerator.learn({
   name: 'vanilla ice cream',
-  description: 'some classic vanilla ice cream',
+  description: 'classic vanilla ice cream',
   chr:String.fromCharCode(174),
   fg:'#fff',
   foodValue: 100,
+  mixins: ['Food']
+});
+
+Game.ItemGenerator.learn({
+  name: 'strawberry ice cream',
+  description: 'tangy strawberry ice cream',
+  chr:String.fromCharCode(174),
+  fg:'#ee9dda',
+  foodValue: 150,
+  mixins: ['Food']
+});
+
+Game.ItemGenerator.learn({
+  name: 'chocolate ice cream',
+  description: 'rich chocolate ice cream',
+  chr:String.fromCharCode(174),
+  fg:'#86592d',
+  foodValue: 200,
   mixins: ['Food']
 });
