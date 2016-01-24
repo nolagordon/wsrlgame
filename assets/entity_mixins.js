@@ -166,6 +166,32 @@ Game.EntityMixin.PlayerActor = {
   }
 };
 
+Game.EntityMixin.ItemDropper = {
+  META: {
+    mixinName: 'ItemDropper',
+    mixinGroup: 'ItemDropper',
+    stateNamespace: '_ItemDropper_attr',
+    stateModel: {
+      items: []
+    },
+    init: function(template) {
+      this.attr._ItemDropper_attr.items = template.items || [];
+    },
+    listeners: {
+      'killed': function(evtData) {
+        // Use each item's drop rate to decide whether or not to drop
+        for (var i = 0; i < this.attr._ItemDropper_attr.items.length; i++) {
+          if (Math.random() < this.attr._ItemDropper_attr.items[i].dropRate) {
+            // Drop the item at the spot the entity died
+            itemPos = evtData.entityPos;
+            this.getMap().addItem(Game.ItemGenerator.create(this.attr._ItemDropper_attr.items[i].itemName),itemPos);
+          }
+        }
+      }
+    }
+  }
+}
+
 Game.EntityMixin.FoodConsumer = {
   META: {
     mixinName: 'FoodConsumer',
@@ -245,7 +271,7 @@ Game.EntityMixin.WalkerCorporeal = {
           return {madeAdjacentMove:false};
         }
         if (map.getEntity(targetX,targetY)) { // can't walk into spaces occupied by other entities
-          this.raiseSymbolActiveEvent('bumpEntity',{actor:this,recipient:map.getEntity(targetX,targetY)});
+          this.raiseSymbolActiveEvent('bumpEntity',{actor:this,recipient:map.getEntity(targetX,targetY), bumpedEntityPos: {x: targetX, y: targetY}});
           // NOTE: should bumping an entity always take a turn? might have to get some return data from the event (once event return data is implemented)
           return {madeAdjacentMove:true};
         }
@@ -350,7 +376,7 @@ Game.EntityMixin.HitPoints = {
         this.raiseSymbolActiveEvent('damagedBy',{damager:evtData.attacker,damageAmount:evtData.attackDamage});
         evtData.attacker.raiseSymbolActiveEvent('dealtDamage',{damagee:this,damageAmount:evtData.attackDamage});
         if (this.getCurHp() <= 0) {
-          this.raiseSymbolActiveEvent('killed',{entKilled: this, killedBy: evtData.attacker});
+          this.raiseSymbolActiveEvent('killed',{entKilled: this, killedBy: evtData.attacker, entityPos: evtData.entityPos});
           evtData.attacker.raiseSymbolActiveEvent('madeKill',{entKilled: this, killedBy: evtData.attacker});
         }
       },
@@ -406,7 +432,7 @@ Game.EntityMixin.MeleeAttacker = {
           var hitDamageResp = this.raiseSymbolActiveEvent('calcAttackDamage');
           var damageMitigateResp = evtData.recipient.raiseSymbolActiveEvent('calcDamageMitigation');
 
-          evtData.recipient.raiseSymbolActiveEvent('attacked',{attacker:evtData.actor,attackDamage:Game.util.compactNumberArray_add(hitDamageResp.attackDamage) - Game.util.compactNumberArray_add(damageMitigateResp.damageMitigation)});
+          evtData.recipient.raiseSymbolActiveEvent('attacked',{attacker:evtData.actor,attackDamage:Game.util.compactNumberArray_add(hitDamageResp.attackDamage) - Game.util.compactNumberArray_add(damageMitigateResp.damageMitigation), entityPos: evtData.bumpedEntityPos});
         } else {
           evtData.recipient.raiseSymbolActiveEvent('attackAvoided',{attacker:evtData.actor,recipient:evtData.recipient});
           evtData.actor.raiseSymbolActiveEvent('attackMissed',{attacker:evtData.actor,recipient:evtData.recipient});

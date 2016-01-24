@@ -436,10 +436,10 @@ Game.UIMode.gamePlay = {
     var itemPos = '';
     // dev code - just add some entities to the map
     for (var ecount = 0; ecount < 20; ecount++) {
-      this.getMap().addEntity(Game.EntityGenerator.create('ice'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('ice'),this.getMap().getRandomWalkablePosition());
       this.getMap().addEntity(Game.EntityGenerator.create('vanilla scoop'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
 
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);

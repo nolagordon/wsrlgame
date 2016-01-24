@@ -29,7 +29,8 @@ Game.EntityGenerator.learn({
   chr:'O',
   fg:'#fff',
   maxHp: 2,
-  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal"]
+  items: [{itemName: 'vanilla ice cream', dropRate: 0.5}],
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "ItemDropper"]
 });
 
 Game.EntityGenerator.learn({

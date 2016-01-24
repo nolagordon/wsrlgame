@@ -17,3 +17,12 @@ Game.ItemGenerator.learn({
   foodValue: 100,
   mixins: ['Food']
 });
+
+Game.ItemGenerator.learn({
+  name: 'vanilla ice cream',
+  description: 'some classic vanilla ice cream',
+  chr:String.fromCharCode(174),
+  fg:'#fff',
+  foodValue: 100,
+  mixins: ['Food']
+});
