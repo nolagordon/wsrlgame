@@ -88,6 +88,10 @@ Game.EntityMixin.PlayerMessager = {
           Game.Message.sendMessage('you dropped the '+evtData.lastItemDroppedName);
         }
         Game.renderMessage();
+      },
+
+      'moneyObtained': function(evtData) {
+        Game.Message.sendMessage('you got ' + evtData.amount + ' sprinkles')
       }
     }
   }
@@ -186,6 +190,31 @@ Game.EntityMixin.ItemDropper = {
             itemPos = evtData.entityPos;
             this.getMap().addItem(Game.ItemGenerator.create(this.attr._ItemDropper_attr.items[i].itemName),itemPos);
           }
+        }
+      }
+    }
+  }
+};
+
+Game.EntityMixin.MoneyDropper = {
+  META: {
+    mixinName: 'MoneyDropper',
+    mixinGroup: 'MoneyDropper',
+    stateNamespace: '_MoneyDropper_attr',
+    stateModel: {
+      dropMoney: 0
+    },
+    init: function(template) {
+      this.attr._MoneyDropper_attr.items = template.dropMoney || [];
+    },
+    listeners: {
+      'killed': function(evtData) {
+        // If the attacker is a MoneyHolder, add this money to its balance
+        try {
+          evtData.killedBy.deposit(dropMoney);
+          this.raiseSymbolActiveEvent('moneyObtained',{amount: this.attr._MoneyDropper_attr.dropMoney});
+        } catch (e) {
+          // do nothing
         }
       }
     }
