@@ -139,6 +139,11 @@ Game.EntityMixin.PlayerActor = {
         //Game.TimeEngine.lock();
         Game.DeadAvatar = this;
         Game.switchUiMode("gameLose");
+      },
+      //TODO: fix this - there has to be a better way to interact with the shop
+      'bumpEntity': function(evtData) {
+        // If the player bumped into the shopkeeper, we want to raise an event
+        evtData.recipient.raiseSymbolActiveEvent('bumped',{actor: evtData.actor});
       }
     }
   },
@@ -754,12 +759,50 @@ Game.EntityMixin.Shopkeeper = {
     mixinGroup: 'Shopkeeper',
     stateNamespace: '_Shopkeeper_attr',
     stateModel:  {
-      items: []
+      containerId: ''
+      //prices: {}
     },
     init: function (template) {
-      this.attr._Shopkeeper_attr.items = template.items || [];
+      //this.attr._Shopkeeper_attr.prices = template.prices || [];
+      if (template.containerId) {
+        this.attr._Shopkeeper_attr.containerId = template.containerId;
+      } else {
+        var container = Game.ItemGenerator.create('_inventoryContainer');
+        container.setCapacity(1000);
+        this.attr._Shopkeeper_attr.containerId = container.getId();
+      }
+
+
     },
-    listeners: {    }
+    listeners: {
+      'bumped': function(evtData) {
+        // Want to open up the shop window if the player bumps into the shop
+        console.log('shopkeeper bump entity')
+        console.dir(evtData);
+        Game.addUiMode('LAYER_shopListing');
+        if (evtData.actor.name === 'actor') {
+          Game.addUiMode('LAYER_shopListing');
+        }
+      }
+    }
+  },
+
+  _getContainer: function () {
+    return Game.DATASTORE.ITEM[this.attr._Shopkeeper_attr.containerId];
+  },
+
+  getShopItemIds: function() {
+
+  },
+
+  addMerchandise: function (items_or_ids) {
+    return this._getContainer().addItems(items_or_ids);
+  },
+  getMerchandiseIds: function () {
+    return this._getContainer().getItemIds();
+  },
+  extractMerchandise: function (ids_or_idxs) {
+    return this._getContainer().extractItems(ids_or_idxs);
   },
 
   sell: function (itemIndex, buyer) {
@@ -772,7 +815,7 @@ Game.EntityMixin.Shopkeeper = {
     items.splice(itemIndex,1);
   },
 
-  addMerchandise: function(item) {
+  addMerchandise: function(item, price) {
     items.push(item);
   }
 };

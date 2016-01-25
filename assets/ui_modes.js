@@ -569,6 +569,8 @@ Game.UIMode.LAYER_itemListing = function(template) {
   this._displayItems = [];
   this._displayMaxNum = Game.getDisplayHeight('main')-5;
   this._numItemsShown = 0;
+
+  this._shopMode = template.shopMode || false;
 };
 
 Game.UIMode.LAYER_itemListing.prototype._runFilterOnItemIdList = function () {
@@ -897,4 +899,21 @@ Game.UIMode.LAYER_inventoryEat = new Game.UIMode.LAYER_itemListing({
 });
 Game.UIMode.LAYER_inventoryEat.doSetup = function () {
   this.setup({itemIdList: Game.getAvatar().getInventoryItemIds()});
+};
+
+//-----------------------
+
+Game.UIMode.LAYER_shopListing = new Game.UIMode.LAYER_itemListing({
+  caption: 'Shop inventory',
+  canSelect: true,
+  canSelectMultipleItems: true,
+  keyBindingName: 'LAYER_shopListing',
+  shopMode: true,
+  processingFunction: function (selectedItemIds) {
+    var pickupResult = Game.getAvatar().pickupItems(selectedItemIds);
+    return pickupResult.numItemsPickedUp > 0;
+  }
+});
+Game.UIMode.LAYER_shopListing.doSetup = function () {
+  this.setup({itemIdList: Game.util.objectArrayToIdArray(Game.getAvatar().getMap().getItems(Game.getAvatar().getPos()))});
 };
