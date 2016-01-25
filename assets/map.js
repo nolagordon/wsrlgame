@@ -82,77 +82,28 @@ Game.Map.prototype.reachable = function(fromPos, toPos) {
   return false;
 };
 
-// Add stairs to the map reachable from the given position
-Game.Map.prototype.addStairsReachableFrom = function(pos) {
-  // Choose a random floor tile to act as stairs down to the next level
-  var stairsPos;
-
-  // Select a random walkable position reachable from the given position
+// Returns a random location reachable from the given position
+Game.Map.prototype.getReachableLocationFrom = function(origin) {
+  var pos;
   do {
-    stairsPos = this.getRandomWalkablePosition();
-  } while (!(this.reachable(stairsPos, pos)));
+    pos = this.getRandomWalkablePosition();
+  } while (!(this.reachable(pos,origin)));
+  return pos;
+};
+
+// Add stairs to the map reachable from the given position
+Game.Map.prototype.addStairs = function(avatarPos) {
+  // Choose a random floor tile to act as stairs down to the next level
+  var stairsPos = this.getReachableLocationFrom(avatarPos);
 
   // Place the stairs at that position
   this._tiles[stairsPos.x][stairsPos.y] = Game.Tile.stairsDownTile;
   console.log("stars at " + stairsPos.x + ", " + stairsPos.y);
+};
 
-/*
-  // Place the stairs 100 steps away from the player's position
-  var curX = pos.x, curY = pos.y;
-  for (var i = 0; i < 100; i++) {
-    var nextX, nextY;
-    console.dir(this._tiles);
-    do {
-      // Choose a random number between 1 and 8 to choose next direction
-      // to move
-      var nextDir = Math.floor(Math.random() * 8) + 1;
-      if (nextDir === 1) {
-        nextX = curX - 1;
-        nextY = curY + 1;
-      } else if (nextDir === 2) {
-        nextX = curX;
-        nextY = curY + 1;
-      } else if (nextDir === 3) {
-        nextX = curX + 1;
-        nextY = curY + 1;
-      } else if (nextDir === 4) {
-        nextX = curX - 1;
-        nextY = curY;
-      } else if (nextDir === 5) {
-        nextX = curX + 1;
-        nextY = curY;
-      } else if (nextDir === 6) {
-        nextX = curX - 1;
-        nextY = curY - 1;
-      } else if (nextDir === 7) {
-        nextX = curX;
-        nextY = curY - 1;
-      } else if (nextDir === 8) {
-        nextX = curX + 1;
-        nextY = curY - 1;
-      }
-    } while ((nextX >= this.attr._width) ||
-            (nextY >= this.attr._height) ||
-            (nextX < 0) ||
-            (nextY < 0) ||
-            (!(this._tiles[nextX][nextY].isWalkable())));
-    curX = nextX;
-    curY = nextY;
-  }
-
-  this._tiles[curX][curY] = Game.Tile.stairsDownTile;
-  //var path = ROT.Path.Dijkstra(pos.x,pos.y);
-  //console.dir(path);
-  //console.dir(path.compute(stairsPos.x,stairsPos.y));
-  /*var tX,tY;
-  do {
-    tX = Game.util.randomInt(0,this._width - 1);
-    tY = Game.util.randomInt(0,this._height - 1);
-  } while (! mapTiles[tX][tY].isWalkable);
-  mapTiles[tX][tY] = Game.Tile.stairsDownTile;
-  */
-//  console.log("Stairs location is x: " + curX + ", y: " + curX);
-
+Game.Map.prototype.addShop = function(avatarPos) {
+  var shopPos = this.getReachableLocationFrom(avatarPos);
+  this.addEntity(Game.EntityGenerator.create('shop'),shopPos);
 };
 
 Game.Map.prototype.setFloorNum = function(n) {

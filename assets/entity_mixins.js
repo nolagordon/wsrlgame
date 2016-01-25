@@ -748,6 +748,35 @@ Game.EntityMixin.InventoryHolder = {
   }
 };
 
+Game.EntityMixin.Shopkeeper = {
+  META: {
+    mixinName: 'Shopkeeper',
+    mixinGroup: 'Shopkeeper',
+    stateNamespace: '_Shopkeeper_attr',
+    stateModel:  {
+      items: []
+    },
+    init: function (template) {
+      this.attr._Shopkeeper_attr.items = template.items || [];
+    },
+    listeners: {    }
+  },
+
+  sell: function (itemIndex, buyer) {
+    // Remove the appropriate amount of money from the buyer,
+    // then add the item to the buyer's inventory
+    buyer.withdraw(items[itemIndex].price);
+    buyer.addInventoryItems(items[itemIndex].item);
+
+    // Remove the bought item from the stock
+    items.splice(itemIndex,1);
+  },
+
+  addMerchandise: function(item) {
+    items.push(item);
+  }
+};
+
 //#############################################################################
 // ENTITY ACTORS / AI
 

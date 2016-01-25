@@ -15,6 +15,14 @@ Game.EntityGenerator.learn({
 });
 
 Game.EntityGenerator.learn({
+  name: 'shop',
+  description: 'You could buy all sorts of stuff here - for the right price',
+  chr: 'S',
+  fg: '#9933ff',
+  mixins: ["Shopkeeper"]
+});
+
+Game.EntityGenerator.learn({
   name: 'ice',
   description: 'A large ground-covering patch of frozen water',
   chr:'%',

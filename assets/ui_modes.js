@@ -438,8 +438,8 @@ Game.UIMode.gamePlay = {
     for (var ecount = 0; ecount < 20; ecount++) {
       this.getMap().addEntity(Game.EntityGenerator.create('ice'),this.getMap().getRandomWalkablePosition());
       this.getMap().addEntity(Game.EntityGenerator.create('vanilla scoop'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
 
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
@@ -448,15 +448,11 @@ Game.UIMode.gamePlay = {
       this.getMap().addItem(Game.ItemGenerator.create('maraschino cherry'),itemPos);
     }
 
-    for (var ecount = 0; ecount < 50; ecount++) {
-      itemPos = this.getMap().getRandomWalkablePosition();
-      this.getMap().addItem(Game.ItemGenerator.create('maraschino cherry'),itemPos);
-    }
-
     Game.Message.sendMessage("You've reached floor " + floorNum + ".");
     this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
 
-    this.getMap().addStairsReachableFrom(this.getAvatar().getPos());
+    this.getMap().addShop(this.getAvatar().getPos());
+    this.getMap().addStairs(this.getAvatar().getPos());
 
     // for (var ti=0; ti<30;ti++) {
     //   Game.getAvatar().addInventoryItems([Game.ItemGenerator.create('rock')]);
