@@ -717,9 +717,6 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
       this._numItemsShown++;
     }
   }
-  console.log("display items start index: " + this._displayItemsStartIndex);
-  console.log("display items length: " + this._displayItems.length);
-  console.log("this._itemIdList.length: " + this._itemIdList.length);
   if ((this._displayItemsStartIndex + this._displayItems.length) < this._itemIdList.length) {
     display.drawText(0, 1 + row, '%c{#fff}%b{#000}] for more');
     row++;

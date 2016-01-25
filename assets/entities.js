@@ -29,7 +29,7 @@ Game.EntityGenerator.learn({
   chr:'O',
   fg:'#fff',
   maxHp: 2,
-  dropMoney: 10,
+  amountToDrop: 5,
   items: [{itemName: 'vanilla ice cream', dropRate: 0.5}],
   mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "ItemDropper", "MoneyDropper"]
 });
@@ -43,8 +43,9 @@ Game.EntityGenerator.learn({
   attackPower: 1,
   attackAvoid: 2,
   damageMitigation: 1,
+  amountToDrop: 20,
   items: [{itemName: 'strawberry ice cream', dropRate: 0.35}],
-  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender", "ItemDropper"]
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender", "ItemDropper", "MoneyDropper"]
 
 });
 
@@ -58,6 +59,7 @@ Game.EntityGenerator.learn({
   attackPower: 1,
   wanderChaserActionDuration: 1200,
   attackActionDuration: 3000,
+  amountToDrop: 10,
   items: [{itemName: 'chocolate ice cream', dropRate: 0.2}],
-  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "ItemDropper"]
+  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "ItemDropper", "MoneyDropper"]
 });

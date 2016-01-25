@@ -91,7 +91,11 @@ Game.EntityMixin.PlayerMessager = {
       },
 
       'moneyObtained': function(evtData) {
-        Game.Message.sendMessage('you got ' + evtData.amount + ' sprinkles')
+        Game.Message.sendMessage('you got ' + evtData.amount + ' sprinkles');
+      },
+
+      'moneyLost': function(evtData) {
+        Game.Message.sendMessage('you lost ' + evtData.amount + ' sprinkles');
       }
     }
   }
@@ -202,19 +206,16 @@ Game.EntityMixin.MoneyDropper = {
     mixinGroup: 'MoneyDropper',
     stateNamespace: '_MoneyDropper_attr',
     stateModel: {
-      dropMoney: 0
+      amountToDrop: 0
     },
     init: function(template) {
-      this.attr._MoneyDropper_attr.items = template.dropMoney || [];
+      this.attr._MoneyDropper_attr.amountToDrop = template.amountToDrop || [];
     },
     listeners: {
       'killed': function(evtData) {
         // If the attacker is a MoneyHolder, add this money to its balance
-        try {
-          evtData.killedBy.deposit(dropMoney);
-          this.raiseSymbolActiveEvent('moneyObtained',{amount: this.attr._MoneyDropper_attr.dropMoney});
-        } catch (e) {
-          // do nothing
+        if (evtData.killedBy.hasOwnProperty('deposit')) {
+          evtData.killedBy.deposit(this.attr._MoneyDropper_attr.amountToDrop);
         }
       }
     }
@@ -634,9 +635,11 @@ Game.EntityMixin.MoneyHolder = {
   },
   deposit: function (n) {
     this.attr._MoneyHolder_attr.balance = this.attr._MoneyHolder_attr.balance + n;
+    this.raiseSymbolActiveEvent('moneyObtained',{amount: n});
   },
   withdraw: function (n) {
     this.attr._MoneyHolder_attr.balance = this.attr._MoneyHolder_attr.balance - n;
+    this.raiseSymbolActiveEvent('moneyLost',{amount: n});
   }
 };
 
