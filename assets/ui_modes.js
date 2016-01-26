@@ -452,6 +452,12 @@ Game.UIMode.gamePlay = {
     this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
 
     this.getMap().addShop(this.getAvatar().getPos());
+    // Get the shop entity and add merchanise to the shop
+    var shop = this.getMap().getEntity(this.getMap().getShopPos());
+    shop.addMerchandise([Game.ItemGenerator.create('maraschino cherry')]);
+    console.log("shop merchandise");
+    console.dir(shop.getMerchandiseIds());
+
     this.getMap().addStairs(this.getAvatar().getPos());
 
     // for (var ti=0; ti<30;ti++) {
@@ -681,7 +687,7 @@ Game.UIMode.LAYER_itemListing.prototype.getCaptionText = function () {
 Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
   var selectionLetters = 'abcdefghijklmnopqrstuvwxyz';
 
-  display.drawText(0, 0, '%c{#fff}%b{#000}You have ' + Game.UIMode.gamePlay.getAvatar().getBalance() + ' sprinkles')
+  display.drawText(0, 0, '%c{#fff}%b{#000}You have ' + Game.UIMode.gamePlay.getAvatar().getBalance() + ' sprinkles');
 
   display.drawText(0, 2, Game.UIMode.DEFAULT_COLOR_STR + this.getCaptionText());
 
@@ -771,6 +777,7 @@ Game.UIMode.LAYER_itemListing.prototype.handleInput = function (inputType,inputD
   if (actionBinding.actionKey == 'CANCEL') {
      Game.removeUiMode();
    } else if (actionBinding.actionKey == 'PROCESS_SELECTIONS') {
+     console.log('pressed process selections key');
      this.executeProcessingFunction();
    } else if (this._canSelectItem && this._hasNoItemOption && (actionBinding.actionKey == 'SELECT_NOTHING')) {
      this._selectedItemIdxs = {};
@@ -904,16 +911,20 @@ Game.UIMode.LAYER_inventoryEat.doSetup = function () {
 //-----------------------
 
 Game.UIMode.LAYER_shopListing = new Game.UIMode.LAYER_itemListing({
-  caption: 'Shop inventory',
+  caption: 'Merchandise',
   canSelect: true,
   canSelectMultipleItems: true,
   keyBindingName: 'LAYER_shopListing',
   shopMode: true,
   processingFunction: function (selectedItemIds) {
-    var pickupResult = Game.getAvatar().pickupItems(selectedItemIds);
-    return pickupResult.numItemsPickedUp > 0;
+    var map = Game.UIMode.gamePlay.getMap();
+    var shop = map.getEntity(map.getShopPos());
+    shop.sellItems(selectedItemIds, Game.getAvatar());
   }
 });
+
 Game.UIMode.LAYER_shopListing.doSetup = function () {
-  this.setup({itemIdList: Game.util.objectArrayToIdArray(Game.getAvatar().getMap().getItems(Game.getAvatar().getPos()))});
+  var map = Game.UIMode.gamePlay.getMap();
+  var shop = map.getEntity(map.getShopPos());
+  this.setup({itemIdList: shop.getMerchandiseIds()});
 };

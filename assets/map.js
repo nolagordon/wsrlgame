@@ -10,6 +10,7 @@ Game.Map = function (mapTileSetName,presetId) {
     _width: this._tiles.length,
     _height: this._tiles[0].length,
     _floorNum: -1,
+    _shopPos: {},
     _entitiesByLocation: {},
     _locationsByEntity: {},
     _itemsByLocation: {},
@@ -104,6 +105,11 @@ Game.Map.prototype.addStairs = function(avatarPos) {
 Game.Map.prototype.addShop = function(avatarPos) {
   var shopPos = this.getReachableLocationFrom(avatarPos);
   this.addEntity(Game.EntityGenerator.create('shop'),shopPos);
+  this.attr._shopPos = shopPos;
+};
+
+Game.Map.prototype.getShopPos = function() {
+  return this.attr._shopPos;
 };
 
 Game.Map.prototype.setFloorNum = function(n) {

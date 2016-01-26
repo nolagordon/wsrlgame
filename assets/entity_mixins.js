@@ -777,8 +777,6 @@ Game.EntityMixin.Shopkeeper = {
     listeners: {
       'bumped': function(evtData) {
         // Want to open up the shop window if the player bumps into the shop
-        console.log('shopkeeper bump entity')
-        console.dir(evtData);
         Game.addUiMode('LAYER_shopListing');
         if (evtData.actor.name === 'actor') {
           Game.addUiMode('LAYER_shopListing');
@@ -791,10 +789,6 @@ Game.EntityMixin.Shopkeeper = {
     return Game.DATASTORE.ITEM[this.attr._Shopkeeper_attr.containerId];
   },
 
-  getShopItemIds: function() {
-
-  },
-
   addMerchandise: function (items_or_ids) {
     return this._getContainer().addItems(items_or_ids);
   },
@@ -805,18 +799,16 @@ Game.EntityMixin.Shopkeeper = {
     return this._getContainer().extractItems(ids_or_idxs);
   },
 
-  sell: function (itemIndex, buyer) {
+  sellItems: function (itemIds, buyer) {
+    buyer.addInventoryItems(itemIds);
+    this.extractMerchandise(itemIds);
     // Remove the appropriate amount of money from the buyer,
     // then add the item to the buyer's inventory
-    buyer.withdraw(items[itemIndex].price);
-    buyer.addInventoryItems(items[itemIndex].item);
+    //buyer.withdraw(items[itemIndex].price);
+    //buyer.addInventoryItems(items[itemIndex].item);
 
     // Remove the bought item from the stock
-    items.splice(itemIndex,1);
-  },
-
-  addMerchandise: function(item, price) {
-    items.push(item);
+    //items.splice(itemIndex,1);
   }
 };
 
