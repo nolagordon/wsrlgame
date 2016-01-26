@@ -88,6 +88,14 @@ Game.EntityMixin.PlayerMessager = {
           Game.Message.sendMessage('you dropped the '+evtData.lastItemDroppedName);
         }
         Game.renderMessage();
+      },
+
+      'moneyObtained': function(evtData) {
+        Game.Message.sendMessage('you got ' + evtData.amount + ' sprinkles');
+      },
+
+      'moneyLost': function(evtData) {
+        Game.Message.sendMessage('you lost ' + evtData.amount + ' sprinkles');
       }
     }
   }
@@ -131,6 +139,11 @@ Game.EntityMixin.PlayerActor = {
         //Game.TimeEngine.lock();
         Game.DeadAvatar = this;
         Game.switchUiMode("gameLose");
+      },
+      //TODO: fix this - there has to be a better way to interact with the shop
+      'bumpEntity': function(evtData) {
+        // If the player bumped into the shopkeeper, we want to raise an event
+        evtData.recipient.raiseSymbolActiveEvent('bumped',{actor: evtData.actor});
       }
     }
   },
@@ -190,7 +203,29 @@ Game.EntityMixin.ItemDropper = {
       }
     }
   }
-}
+};
+
+Game.EntityMixin.MoneyDropper = {
+  META: {
+    mixinName: 'MoneyDropper',
+    mixinGroup: 'MoneyDropper',
+    stateNamespace: '_MoneyDropper_attr',
+    stateModel: {
+      amountToDrop: 0
+    },
+    init: function(template) {
+      this.attr._MoneyDropper_attr.amountToDrop = template.amountToDrop || [];
+    },
+    listeners: {
+      'killed': function(evtData) {
+        // If the attacker is a MoneyHolder, add this money to its balance
+        if (evtData.killedBy.hasOwnProperty('deposit')) {
+          evtData.killedBy.deposit(this.attr._MoneyDropper_attr.amountToDrop);
+        }
+      }
+    }
+  }
+};
 
 Game.EntityMixin.FoodConsumer = {
   META: {
@@ -587,6 +622,32 @@ Game.EntityMixin.MapMemory = {
   }
 };
 
+Game.EntityMixin.MoneyHolder = {
+  META: {
+    mixinName: 'MoneyHolder',
+    mixinGroup: 'MoneyHolder',
+    stateNamespace: '_MoneyHolder_attr',
+    stateModel:  {
+      balance: 0
+    },
+    init: function (template) {
+      this.attr._MoneyHolder_attr.balance = template.balance || 0;
+    },
+    listeners: {    }
+  },
+  getBalance: function () {
+    return this.attr._MoneyHolder_attr.balance;
+  },
+  deposit: function (n) {
+    this.attr._MoneyHolder_attr.balance = this.attr._MoneyHolder_attr.balance + n;
+    this.raiseSymbolActiveEvent('moneyObtained',{amount: n});
+  },
+  withdraw: function (n) {
+    this.attr._MoneyHolder_attr.balance = this.attr._MoneyHolder_attr.balance - n;
+    this.raiseSymbolActiveEvent('moneyLost',{amount: n});
+  }
+};
+
 Game.EntityMixin.InventoryHolder = {
   META: {
     mixinName: 'InventoryHolder',
@@ -689,6 +750,91 @@ Game.EntityMixin.InventoryHolder = {
     dropResult.lastItemDroppedName = lastItemDropped.getName();
     this.raiseSymbolActiveEvent('itemsDropped',dropResult);
     return dropResult;
+  }
+};
+
+Game.EntityMixin.Shopkeeper = {
+  META: {
+    mixinName: 'Shopkeeper',
+    mixinGroup: 'Shopkeeper',
+    stateNamespace: '_Shopkeeper_attr',
+    stateModel:  {
+      containerId: '',
+      prices: {}
+    },
+    init: function (template) {
+      this.attr._Shopkeeper_attr.prices = template.prices || {};
+      if (template.containerId) {
+        this.attr._Shopkeeper_attr.containerId = template.containerId;
+      } else {
+        var container = Game.ItemGenerator.create('_inventoryContainer');
+        container.setCapacity(1000);
+        this.attr._Shopkeeper_attr.containerId = container.getId();
+      }
+
+
+    },
+    listeners: {
+      'bumped': function(evtData) {
+        // Want to open up the shop window if the player bumps into the shop
+        Game.addUiMode('LAYER_shopListing');
+        if (evtData.actor.name === 'actor') {
+          Game.addUiMode('LAYER_shopListing');
+        }
+      }
+    }
+  },
+
+  _getContainer: function () {
+    return Game.DATASTORE.ITEM[this.attr._Shopkeeper_attr.containerId];
+  },
+  getPrice: function(item) {
+    return this.attr._Shopkeeper_attr.prices[item.attr._id];
+  },
+
+  addMerchandise: function (item, price) {
+    console.log(item.attr._id);
+    this.attr._Shopkeeper_attr.prices[item.attr._id] = price;
+    console.log("price is " + this.attr._Shopkeeper_attr.prices[item.attr._id]);
+    return this._getContainer().addItems([item]);
+  },
+  getMerchandiseIds: function () {
+    return this._getContainer().getItemIds();
+  },
+  extractMerchandise: function (ids_or_idxs) {
+    return this._getContainer().extractItems(ids_or_idxs);
+  },
+
+  sellItems: function (itemIds, buyer) {
+    // Calculate total price of given items
+    var total = 0;
+    for (var i = 0; i < itemIds.length; i++) {
+      console.log(itemIds[i]);
+      console.log("price is " + this.attr._Shopkeeper_attr.prices[itemIds[i]]);
+      total = total + this.attr._Shopkeeper_attr.prices[itemIds[i]];
+    }
+
+    console.log('total cost is ' + total);
+
+    // Check whether the buyer can afford the items
+    if (buyer.getBalance() < total) {
+      Game.Message.sendMessage("insufficient funds");
+
+    // otherwise withdraw the appropriate amt of money and add items to buyer's inventory
+    } else {
+      buyer.withdraw(total);
+      buyer.addInventoryItems(itemIds);
+      Game.Message.sendMessage("you bought " + itemIds.length + " item(s)");
+      this.extractMerchandise(itemIds);
+    }
+
+    // Remove the appropriate amount of money from the buyer,
+    // then add the item to the buyer's inventory
+    //buyer.withdraw(items[itemIndex].price);
+    //buyer.addInventoryItems(items[itemIndex].item);
+
+    // Remove the bought item from the stock
+    //items.splice(itemIndex,1);
   }
 };
 

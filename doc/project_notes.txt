@@ -43,3 +43,10 @@ the algorithm uses).
 
 CONCERN: Do we need to delete the entities on the map before we switch floors? Will there be any adverse
 affects on our game if we don't?
+
+Notes about currency/shops:
+- currency handled through entity mixins - MoneyHolder and MoneyDropper
+- added shopkeeper entity mixin
+- shop opens as an itemListing layer (such as layers to pickup/eat/drop items)
+- In order to deal with prices, I think I'll add a map to the shopkeeper mixin that maps
+  items to their prices

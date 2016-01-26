@@ -11,7 +11,15 @@ Game.EntityGenerator.learn({
   attackDamage: 2,
   inventoryCapacity: 35,
   maxFood: 400,
-  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Chronicle", "MeleeAttacker", "MeleeDefender","InventoryHolder","FoodConsumer"]
+  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Chronicle", "MeleeAttacker", "MeleeDefender","InventoryHolder","FoodConsumer", "MoneyHolder"]
+});
+
+Game.EntityGenerator.learn({
+  name: 'shop',
+  description: 'You could buy all sorts of stuff here - for the right price',
+  chr: 'S',
+  fg: '#9933ff',
+  mixins: ["Shopkeeper"]
 });
 
 Game.EntityGenerator.learn({
@@ -29,8 +37,9 @@ Game.EntityGenerator.learn({
   chr:'O',
   fg:'#fff',
   maxHp: 2,
+  amountToDrop: 5,
   items: [{itemName: 'vanilla ice cream', dropRate: 0.5}],
-  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "ItemDropper"]
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "ItemDropper", "MoneyDropper"]
 });
 
 Game.EntityGenerator.learn({
@@ -42,8 +51,9 @@ Game.EntityGenerator.learn({
   attackPower: 1,
   attackAvoid: 2,
   damageMitigation: 1,
+  amountToDrop: 20,
   items: [{itemName: 'strawberry ice cream', dropRate: 0.35}],
-  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender", "ItemDropper"]
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender", "ItemDropper", "MoneyDropper"]
 
 });
 
@@ -57,6 +67,7 @@ Game.EntityGenerator.learn({
   attackPower: 1,
   wanderChaserActionDuration: 1200,
   attackActionDuration: 3000,
+  amountToDrop: 10,
   items: [{itemName: 'chocolate ice cream', dropRate: 0.2}],
-  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "ItemDropper"]
+  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "ItemDropper", "MoneyDropper"]
 });

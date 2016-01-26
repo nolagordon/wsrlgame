@@ -438,8 +438,8 @@ Game.UIMode.gamePlay = {
     for (var ecount = 0; ecount < 20; ecount++) {
       this.getMap().addEntity(Game.EntityGenerator.create('ice'),this.getMap().getRandomWalkablePosition());
       this.getMap().addEntity(Game.EntityGenerator.create('vanilla scoop'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
-      this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('strawberry scoop'),this.getMap().getRandomWalkablePosition());
+      //this.getMap().addEntity(Game.EntityGenerator.create('chocolate scoop'),this.getMap().getRandomWalkablePosition());
 
       itemPos = this.getMap().getRandomWalkablePosition();
       this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
@@ -451,7 +451,15 @@ Game.UIMode.gamePlay = {
     Game.Message.sendMessage("You've reached floor " + floorNum + ".");
     this.getMap().addItem(Game.ItemGenerator.create('rock'),itemPos);
 
-    this.getMap().addStairsReachableFrom(this.getAvatar().getPos());
+    this.getMap().addShop(this.getAvatar().getPos());
+    // Get the shop entity and add merchanise to the shop
+    var shop = this.getMap().getEntity(this.getMap().getShopPos());
+    shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
+    shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
+    shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
+    shop.addMerchandise(Game.ItemGenerator.create('chocolate ice cream'), 100);
+
+    this.getMap().addStairs(this.getAvatar().getPos());
 
     // for (var ti=0; ti<30;ti++) {
     //   Game.getAvatar().addInventoryItems([Game.ItemGenerator.create('rock')]);
@@ -566,8 +574,10 @@ Game.UIMode.LAYER_itemListing = function(template) {
   this._selectedItemIdxs= [];
   this._displayItemsStartIndex = 0;
   this._displayItems = [];
-  this._displayMaxNum = Game.getDisplayHeight('main')-3;
+  this._displayMaxNum = Game.getDisplayHeight('main')-5;
   this._numItemsShown = 0;
+
+  this._shopMode = template.shopMode || false;
 };
 
 Game.UIMode.LAYER_itemListing.prototype._runFilterOnItemIdList = function () {
@@ -678,17 +688,19 @@ Game.UIMode.LAYER_itemListing.prototype.getCaptionText = function () {
 Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
   var selectionLetters = 'abcdefghijklmnopqrstuvwxyz';
 
-  display.drawText(0, 0, Game.UIMode.DEFAULT_COLOR_STR + this.getCaptionText());
+  display.drawText(0, 0, '%c{#fff}%b{#000}You have ' + Game.UIMode.gamePlay.getAvatar().getBalance() + ' sprinkles');
+
+  display.drawText(0, 2, Game.UIMode.DEFAULT_COLOR_STR + this.getCaptionText());
 
   if (this._displayItems.length < 1) {
-    display.drawText(0, 2, Game.UIMode.DEFAULT_COLOR_STR + 'nothing for '+ this.getCaptionText().toLowerCase());
+    display.drawText(0, 4, Game.UIMode.DEFAULT_COLOR_STR + 'nothing for '+ this.getCaptionText().toLowerCase());
     return;
   }
 
-  var row = 0;
+  var row = 2;
 
   if (this._hasNoItemOption) {
-    display.drawText(0, 1, Game.UIMode.DEFAULT_COLOR_STR + '0 - no item');
+    display.drawText(0, 1 + row, Game.UIMode.DEFAULT_COLOR_STR + '0 - no item');
     row++;
   }
   if (this._displayItemsStartIndex > 0) {
@@ -705,7 +717,12 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
       var selectionState = (this._canSelectItem && this._canSelectMultipleItems && this._selectedItemIdxs[trueItemIndex]) ? '+' : ' ';
 
       var item_symbol = this._displayItems[i].getRepresentation("#000")+Game.UIMode.DEFAULT_COLOR_STR;
-      display.drawText(0, 1 + row, Game.UIMode.DEFAULT_COLOR_STR + selectionLetter + ' ' + selectionState + ' ' + item_symbol + ' ' +this._displayItems[i].getName());
+      var item_representation = Game.UIMode.DEFAULT_COLOR_STR + selectionLetter + ' ' + selectionState + ' ' + item_symbol + ' ' +this._displayItems[i].getName();
+      var shop = Game.UIMode.gamePlay.getMap().getEntity(Game.UIMode.gamePlay.getMap().getShopPos());
+      if (this._shopMode) {
+        item_representation = item_representation + '    ' + shop.getPrice(this._displayItems[i]) + ' sprinkles';
+      }
+      display.drawText(0, 1 + row, item_representation);
       row++;
       this._numItemsShown++;
     }
@@ -894,4 +911,25 @@ Game.UIMode.LAYER_inventoryEat = new Game.UIMode.LAYER_itemListing({
 });
 Game.UIMode.LAYER_inventoryEat.doSetup = function () {
   this.setup({itemIdList: Game.getAvatar().getInventoryItemIds()});
+};
+
+//-----------------------
+
+Game.UIMode.LAYER_shopListing = new Game.UIMode.LAYER_itemListing({
+  caption: 'Merchandise',
+  canSelect: true,
+  canSelectMultipleItems: true,
+  keyBindingName: 'LAYER_shopListing',
+  shopMode: true,
+  processingFunction: function (selectedItemIds) {
+    var map = Game.UIMode.gamePlay.getMap();
+    var shop = map.getEntity(map.getShopPos());
+    shop.sellItems(selectedItemIds, Game.getAvatar());
+  }
+});
+
+Game.UIMode.LAYER_shopListing.doSetup = function () {
+  var map = Game.UIMode.gamePlay.getMap();
+  var shop = map.getEntity(map.getShopPos());
+  this.setup({itemIdList: shop.getMerchandiseIds()});
 };
