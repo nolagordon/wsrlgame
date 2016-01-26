@@ -457,6 +457,7 @@ Game.UIMode.gamePlay = {
     shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
     shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
     shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
+    shop.addMerchandise(Game.ItemGenerator.create('chocolate ice cream'), 100);
 
     this.getMap().addStairs(this.getAvatar().getPos());
 
