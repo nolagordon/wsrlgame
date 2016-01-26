@@ -454,9 +454,9 @@ Game.UIMode.gamePlay = {
     this.getMap().addShop(this.getAvatar().getPos());
     // Get the shop entity and add merchanise to the shop
     var shop = this.getMap().getEntity(this.getMap().getShopPos());
-    shop.addMerchandise([Game.ItemGenerator.create('maraschino cherry')]);
-    console.log("shop merchandise");
-    console.dir(shop.getMerchandiseIds());
+    shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
+    shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
+    shop.addMerchandise(Game.ItemGenerator.create('maraschino cherry'), 10);
 
     this.getMap().addStairs(this.getAvatar().getPos());
 
@@ -716,7 +716,12 @@ Game.UIMode.LAYER_itemListing.prototype.renderOnMain = function (display) {
       var selectionState = (this._canSelectItem && this._canSelectMultipleItems && this._selectedItemIdxs[trueItemIndex]) ? '+' : ' ';
 
       var item_symbol = this._displayItems[i].getRepresentation("#000")+Game.UIMode.DEFAULT_COLOR_STR;
-      display.drawText(0, 1 + row, Game.UIMode.DEFAULT_COLOR_STR + selectionLetter + ' ' + selectionState + ' ' + item_symbol + ' ' +this._displayItems[i].getName());
+      var item_representation = Game.UIMode.DEFAULT_COLOR_STR + selectionLetter + ' ' + selectionState + ' ' + item_symbol + ' ' +this._displayItems[i].getName();
+      var shop = Game.UIMode.gamePlay.getMap().getEntity(Game.UIMode.gamePlay.getMap().getShopPos());
+      if (this._shopMode) {
+        item_representation = item_representation + '    ' + shop.getPrice(this._displayItems[i]) + ' sprinkles';
+      }
+      display.drawText(0, 1 + row, item_representation);
       row++;
       this._numItemsShown++;
     }
@@ -777,7 +782,6 @@ Game.UIMode.LAYER_itemListing.prototype.handleInput = function (inputType,inputD
   if (actionBinding.actionKey == 'CANCEL') {
      Game.removeUiMode();
    } else if (actionBinding.actionKey == 'PROCESS_SELECTIONS') {
-     console.log('pressed process selections key');
      this.executeProcessingFunction();
    } else if (this._canSelectItem && this._hasNoItemOption && (actionBinding.actionKey == 'SELECT_NOTHING')) {
      this._selectedItemIdxs = {};

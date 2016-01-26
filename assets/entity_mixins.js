@@ -759,11 +759,11 @@ Game.EntityMixin.Shopkeeper = {
     mixinGroup: 'Shopkeeper',
     stateNamespace: '_Shopkeeper_attr',
     stateModel:  {
-      containerId: ''
-      //prices: {}
+      containerId: '',
+      prices: {}
     },
     init: function (template) {
-      //this.attr._Shopkeeper_attr.prices = template.prices || [];
+      this.attr._Shopkeeper_attr.prices = template.prices || {};
       if (template.containerId) {
         this.attr._Shopkeeper_attr.containerId = template.containerId;
       } else {
@@ -788,9 +788,15 @@ Game.EntityMixin.Shopkeeper = {
   _getContainer: function () {
     return Game.DATASTORE.ITEM[this.attr._Shopkeeper_attr.containerId];
   },
+  getPrice: function(item) {
+    return this.attr._Shopkeeper_attr.prices[item.attr._id];
+  },
 
-  addMerchandise: function (items_or_ids) {
-    return this._getContainer().addItems(items_or_ids);
+  addMerchandise: function (item, price) {
+    console.log(item.attr._id);
+    this.attr._Shopkeeper_attr.prices[item.attr._id] = price;
+    console.log("price is " + this.attr._Shopkeeper_attr.prices[item.attr._id]);
+    return this._getContainer().addItems([item]);
   },
   getMerchandiseIds: function () {
     return this._getContainer().getItemIds();
@@ -800,8 +806,28 @@ Game.EntityMixin.Shopkeeper = {
   },
 
   sellItems: function (itemIds, buyer) {
-    buyer.addInventoryItems(itemIds);
-    this.extractMerchandise(itemIds);
+    // Calculate total price of given items
+    var total = 0;
+    for (var i = 0; i < itemIds.length; i++) {
+      console.log(itemIds[i]);
+      console.log("price is " + this.attr._Shopkeeper_attr.prices[itemIds[i]]);
+      total = total + this.attr._Shopkeeper_attr.prices[itemIds[i]];
+    }
+
+    console.log('total cost is ' + total);
+
+    // Check whether the buyer can afford the items
+    if (buyer.getBalance() < total) {
+      Game.Message.sendMessage("insufficient funds");
+
+    // otherwise withdraw the appropriate amt of money and add items to buyer's inventory
+    } else {
+      buyer.withdraw(total);
+      buyer.addInventoryItems(itemIds);
+      Game.Message.sendMessage("you bought " + itemIds.length + " item(s)");
+      this.extractMerchandise(itemIds);
+    }
+
     // Remove the appropriate amount of money from the buyer,
     // then add the item to the buyer's inventory
     //buyer.withdraw(items[itemIndex].price);

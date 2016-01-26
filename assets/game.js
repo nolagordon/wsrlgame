@@ -131,7 +131,7 @@ var Game = {
       return;
     }
 
-    console.dir(this.getCurUiMode());
+    //console.dir(this.getCurUiMode());
     if ('renderOnMain' in this.getCurUiMode()) {
       this.getCurUiMode().renderOnMain(this.DISPLAYS.main.o);
     }
