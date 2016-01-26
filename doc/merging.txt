@@ -12,3 +12,11 @@ Options for changing enemy stats:
   - other math?
 Notify the player through a message that enemies have merged (so they
   know there's a stronger-than-average enemy out there)
+
+1/20/15
+New thoughts about how to accomplish the merging - Add to the act function of
+ WanderActor to look for compatible monsters in adjacent squares before moving.
+Also, have a list of compatible merging types as part of the entity information.
+Right now I have a listener for merging monsters, but it might be easier to use
+that to just get rid of the other monster and do the actual entity change with
+the entity that is trying to move. 
