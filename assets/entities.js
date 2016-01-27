@@ -57,7 +57,7 @@ Game.EntityGenerator.learn({
   fg:'#ee9dda',
   maxHp: 4,
   mergesWith: [],
-  attackPower: 1,
+  attackPower: 2,
   attackAvoid: 2,
   damageMitigation: 1,
   mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender"]
@@ -69,7 +69,7 @@ Game.EntityGenerator.learn({
   chr:'O',
   fg:'#86592d',
   maxHp: 4,
-  mergesWith: [{monster:'vanilla scoop', becomes:'vanilla chocolate swirl scoop'}],
+  mergesWith: [{monster:'vanilla scoop', becomes:'vanilla chocolate swirl scoop'}, {monster:'chocolate scoop', becomes:'chocolate double scoop'} ],
   sightRadius: 4,
   attackPower: 1,
   wanderChaserActionDuration: 1200,
@@ -78,9 +78,34 @@ Game.EntityGenerator.learn({
 });
 
 Game.EntityGenerator.learn({
-  name: 'vanilla chocolate swirl scoop',
+  name: 'chocolate double scoop',
   chr:'8',
   fg:'#86592d',
+  maxHp: 4,
+  sightRadius: 4,
+  attackPower: 1,
+  wanderChaserActionDuration: 1200,
+  attackActionDuration: 3000,
+  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "WanderActor"]
+});
+
+Game.EntityGenerator.learn({
+  name: 'vanilla chocolate swirl scoop',
+  chr:'8',
+  fg:'#c68c53',
+  maxHp: 6,
+  mergesWith: [{monster:'strawberry scoop', becomes:'Neopolitan scoop'}],
+  sightRadius: 4,
+  attackPower: 1,
+  wanderChaserActionDuration: 1200,
+  attackActionDuration: 3000,
+  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "MergerActor"]
+});
+
+Game.EntityGenerator.learn({
+  name: 'Neopolitan scoop',
+  chr:'N',
+  fg:'#bf4040',
   maxHp: 6,
   mergesWith: [],
   sightRadius: 4,

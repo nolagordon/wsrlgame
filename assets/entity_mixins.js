@@ -652,24 +652,6 @@ Game.EntityMixin.WanderActor = {
       this.attr._WanderActor_attr.baseActionDuration = template.wanderActionDuration || 1000;
       this.attr._WanderActor_attr.currentActionDuration = this.attr._WanderActor_attr.baseActionDuration;
     },
-    listeners: {
-      'mergeFailed': function(evtData) {
-        var moveDeltas = this.getMoveDeltas();
-        this.raiseSymbolActiveEvent('adjacentMove',{dx:moveDeltas.x,dy:moveDeltas.y});
-        Game.Scheduler.setDuration(this.getCurrentActionDuration());
-        this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-10,10));
-        this.raiseSymbolActiveEvent('actionDone');
-        //console.log("end wander acting");
-      },
-      'mergeComplete': function(evtData) {
-        var moveDeltas = this.getMoveDeltas();
-        this.raiseSymbolActiveEvent('adjacentMove',{dx:moveDeltas.x,dy:moveDeltas.y});
-        Game.Scheduler.setDuration(this.getCurrentActionDuration());
-        this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-10,10));
-        this.raiseSymbolActiveEvent('actionDone');
-
-      }
-    }
   },
   getBaseActionDuration: function () {
     return this.attr._WanderActor_attr.baseActionDuration;
@@ -686,28 +668,10 @@ Game.EntityMixin.WanderActor = {
   getMoveDeltas: function () {
     return Game.util.positionsAdjacentTo({x:0,y:0}).random();
   },
-  findAdjacentMonster: function () {
-    var map = this.getMap();
-    var adjPositions = Game.util.positionsAdjacentTo(this.getPos());
-    var monsters = [];
-    for (var i = 0; i < adjPositions.length; i++) {
-      var ent = map.getEntity(adjPositions[i].x,adjPositions[i].y);
-      if (ent != false) {
-        monsters.push(ent);
-      }
-    }
-    return monsters;
-  },
   act: function () {
     Game.TimeEngine.lock();
-
-    var adjMonsts = this.findAdjacentMonster();
-    if(adjMonsts == []){
-      var moveDeltas = this.getMoveDeltas();
-      this.raiseSymbolActiveEvent('adjacentMove',{dx:moveDeltas.x,dy:moveDeltas.y});
-    } else {
-      this.raiseSymbolActiveEvent('mergeMonster', {monsts:adjMonsts});
-    }
+    var moveDeltas = this.getMoveDeltas();
+    this.raiseSymbolActiveEvent('adjacentMove',{dx:moveDeltas.x,dy:moveDeltas.y});
 
     Game.Scheduler.setDuration(this.getCurrentActionDuration());
     this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-10,10));
@@ -729,21 +693,19 @@ Game.EntityMixin.MergerActor = {
       this.attr._MergerActor_attr.mergesWith = template.mergesWith || [];
     },
     listeners: {
-      'mergeMonster': function(evtData) {
-        this.doMerge(evtData.monsts);
+      'bumpEntity': function(evtData) {
+        evtData.actor.doMerge(evtData.recipient);
       }
     }
   },
   getCompatibleMergeTypes: function (){
     return this.attr._MergerActor_attr.mergesWith;
   },
-  findAdjacentMergable: function (adjMonsts) {
-    for(var ent = 0; ent < adjMonsts.length; ent++) {
-      var types = this.getCompatibleMergeTypes();
-      for (var mergeType = 0; mergeType < types.length; mergeType++) {
-        if (adjMonsts[ent] != null && types[mergeType].monster === adjMonsts[ent].getName()) {
-          return {monst:adjMonsts[ent], x:adjMonsts[ent].getX(), y:adjMonsts[ent].getY()};
-        }
+  findAdjacentMergable: function (adjMonst) {
+    var types = this.getCompatibleMergeTypes();
+    for (var mergeType = 0; mergeType < types.length; mergeType++) {
+      if (adjMonst != null && types[mergeType].monster === adjMonst.getName()) {
+        return adjMonst;
       }
     }
     return null;
@@ -763,15 +725,15 @@ Game.EntityMixin.MergerActor = {
     if(adjMonst == null){
       this.raiseSymbolActiveEvent('mergeFailed');
     } else {
-      var newType = this.mergeBecomes(adjMonst.monst.getName());
+      var newType = this.mergeBecomes(adjMonst.getName());
       var map = this.getMap();
       var xval = this.getX();
       var yval = this.getY();
-      adjMonst.monst.destroy();
+      adjMonst.destroy();
       this.destroy();
 
       map.addEntity(Game.EntityGenerator.create(newType),{x:xval,y:yval});
-      map.getEntity(xval,yval).raiseSymbolActiveEvent('mergeComplete', newType);
+      var newEntity = map.getEntity(xval,yval);
 
       Game.getAvatar().raiseSymbolActiveEvent('mergeMonsterComplete', newType);
 
@@ -795,24 +757,6 @@ Game.EntityMixin.WanderChaserActor = {
       this.attr._WanderChaserActor_attr.baseActionDuration = template.wanderChaserActionDuration || 1000;
       this.attr._WanderChaserActor_attr.currentActionDuration = this.attr._WanderChaserActor_attr.baseActionDuration;
     },
-    listeners: {
-      'mergeFailed': function(evtData) {
-        var moveDeltas = this.getMoveDeltas();
-        this.raiseSymbolActiveEvent('adjacentMove',{dx:moveDeltas.x,dy:moveDeltas.y});
-        Game.Scheduler.setDuration(this.getCurrentActionDuration());
-        this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-10,10));
-        this.raiseSymbolActiveEvent('actionDone');
-        //console.log("end wander acting");
-      },
-      'mergeComplete': function(evtData) {
-        var moveDeltas = this.getMoveDeltas();
-        this.raiseSymbolActiveEvent('adjacentMove',{dx:moveDeltas.x,dy:moveDeltas.y});
-        Game.Scheduler.setDuration(this.getCurrentActionDuration());
-        this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-10,10));
-        this.raiseSymbolActiveEvent('actionDone');
-        //console.log("end wander acting");
-      }
-    }
   },
   getBaseActionDuration: function () {
     return this.attr._WanderChaserActor_attr.baseActionDuration;
@@ -858,28 +802,11 @@ Game.EntityMixin.WanderChaserActor = {
     }
     return Game.util.positionsAdjacentTo({x:0,y:0}).random();
   },
-  findAdjacentMonster: function () {
-    var map = this.getMap();
-    var adjPositions = Game.util.positionsAdjacentTo(this.getPos());
-    var monsters = [];
-    for (var i = 0; i < adjPositions.length; i++) {
-      var ent = map.getEntity(adjPositions[i].x,adjPositions[i].y);
-      if (ent != false) {
-        monsters.push(ent);
-      }
-    }
-    return monsters;
-  },
   act: function () {
     Game.TimeEngine.lock();
 
-    var adjMonsts = this.findAdjacentMonster();
-    if(adjMonsts == []){
-      var moveDeltas = this.getMoveDeltas();
-      this.raiseSymbolActiveEvent('adjacentMove',{dx:moveDeltas.x,dy:moveDeltas.y});
-    } else {
-      this.raiseSymbolActiveEvent('mergeMonster', {monsts:adjMonsts});
-    }
+    var moveDeltas = this.getMoveDeltas();
+    this.raiseSymbolActiveEvent('adjacentMove',{dx:moveDeltas.x,dy:moveDeltas.y});
 
     Game.Scheduler.setDuration(this.getCurrentActionDuration());
     this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-10,10));
