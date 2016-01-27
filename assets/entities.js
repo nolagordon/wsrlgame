@@ -2,18 +2,29 @@ Game.ALL_ENTITIES = {};
 Game.EntityGenerator = new Game.Generator('entities',Game.Entity);
 Game.EntityGenerator.learn({
   name: 'avatar',
+  description: 'our Hero!',
   chr:'\u2744',
   fg:'#2457c5',
   sightRadius: 5,
-  maxHp: 10,
+  maxHp: 25,
   attackAvoid: 1,
   attackDamage: 2,
   inventoryCapacity: 35,
-  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Hunger", "Chronicle", "MeleeAttacker", "MeleeDefender", "InventoryHolder"]
+  maxFood: 400,
+  mixins: ["PlayerActor", "PlayerMessager", "WalkerCorporeal", "Sight", "MapMemory", "HitPoints", "Chronicle", "MeleeAttacker", "MeleeDefender","InventoryHolder","FoodConsumer", "MoneyHolder"]
+});
+
+Game.EntityGenerator.learn({
+  name: 'shop',
+  description: 'You could buy all sorts of stuff here - for the right price',
+  chr: 'S',
+  fg: '#9933ff',
+  mixins: ["Shopkeeper"]
 });
 
 Game.EntityGenerator.learn({
   name: 'ice',
+  description: 'A large ground-covering patch of frozen water',
   chr:'%',
   fg:'#fff',
   maxHp: 1,
@@ -22,11 +33,14 @@ Game.EntityGenerator.learn({
 
 Game.EntityGenerator.learn({
   name: 'vanilla scoop',
+  description: 'A classic scoop of vanilla ice cream. ',
   chr:'O',
   fg:'#fff',
   maxHp: 2,
+  amountToDrop: 5,
+  items: [{itemName: 'vanilla ice cream', dropRate: 0.5}],
   mergesWith: [{monster:'chocolate scoop', becomes:'vanilla chocolate swirl scoop'},{monster:'vanilla scoop', becomes:'vanilla double scoop'}],
-  mixins: ["HitPoints", "WalkerCorporeal", "MergerActor", "WanderActor"]
+  mixins: ["HitPoints", "WalkerCorporeal", "MergerActor", "WanderActor", "ItemDropper", "MoneyDropper"]
 });
 
 Game.EntityGenerator.learn({
@@ -35,19 +49,24 @@ Game.EntityGenerator.learn({
   fg:'#fff',
   maxHp: 4,
   mergesWith: [],
-  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal"]
+  amountToDrop: 10,
+  items: [{itemName: 'vanilla ice cream', dropRate: 0.9}],
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "ItemDropper", "MoneyDropper"]
 });
 
 Game.EntityGenerator.learn({
   name: 'strawberry scoop',
+  description: "A scoop of strawberry ice cream that will attack if you get in its way",
   chr:'O',
   fg:'#ee9dda',
   maxHp: 2,
-  mergesWith: [{monster:'strawberry scoop', becomes:'strawberry double scoop'}],
+  mergesWith: [{monster:'strawberry scoop', becomes:'strawberry double scoop'},{monster:'vanilla chocolate swirl scoop', becomes:'Neopolitan scoop'}],
   attackPower: 1,
   attackAvoid: 2,
   damageMitigation: 1,
-  mixins: ["HitPoints", "WanderActor", "MergerActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender"]
+  amountToDrop: 20,
+  items: [{itemName: 'strawberry ice cream', dropRate: 0.35}],
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender", "ItemDropper", "MoneyDropper", "MergerActor"]
 
 });
 
@@ -60,12 +79,15 @@ Game.EntityGenerator.learn({
   attackPower: 2,
   attackAvoid: 2,
   damageMitigation: 1,
-  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender"]
+  amountToDrop: 30,
+  items: [{itemName: 'strawberry ice cream', dropRate: 0.7}],
+  mixins: ["HitPoints", "WanderActor", "WalkerCorporeal", "MeleeAttacker","MeleeDefender", "ItemDropper", "MoneyDropper"]
 
 });
 
 Game.EntityGenerator.learn({
   name: 'chocolate scoop',
+  description: 'Beware the rage of this highly trained scoop of chocolate ice cream',
   chr:'O',
   fg:'#86592d',
   maxHp: 4,
@@ -74,7 +96,9 @@ Game.EntityGenerator.learn({
   attackPower: 1,
   wanderChaserActionDuration: 1200,
   attackActionDuration: 3000,
-  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "WanderActor", "MergerActor"]
+  amountToDrop: 10,
+  items: [{itemName: 'chocolate ice cream', dropRate: 0.2}],
+  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "ItemDropper", "MoneyDropper", "MergerActor"]
 });
 
 Game.EntityGenerator.learn({
@@ -86,7 +110,9 @@ Game.EntityGenerator.learn({
   attackPower: 1,
   wanderChaserActionDuration: 1200,
   attackActionDuration: 3000,
-  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "WanderActor"]
+  amountToDrop: 20,
+  items: [{itemName: 'chocolate ice cream', dropRate: 0.4}],
+  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "WanderActor", "ItemDropper", "MoneyDropper"]
 });
 
 Game.EntityGenerator.learn({
@@ -99,7 +125,9 @@ Game.EntityGenerator.learn({
   attackPower: 1,
   wanderChaserActionDuration: 1200,
   attackActionDuration: 3000,
-  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "MergerActor"]
+  amountToDrop: 25,
+  items: [{itemName: 'chocolate ice cream', dropRate: 0.3},{itemName: 'vanilla ice cream', dropRate: 0.3}],
+  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "MergerActor", "ItemDropper", "MoneyDropper"]
 });
 
 Game.EntityGenerator.learn({
@@ -109,8 +137,12 @@ Game.EntityGenerator.learn({
   maxHp: 6,
   mergesWith: [],
   sightRadius: 4,
-  attackPower: 1,
+  attackPower: 2,
+  attackAvoid: 2,
+  damageMitigation: 1,
   wanderChaserActionDuration: 1200,
   attackActionDuration: 3000,
-  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker"]
+  amountToDrop: 40,
+  items: [{itemName: 'chocolate ice cream', dropRate: 0.4},{itemName: 'vanilla ice cream', dropRate: 0.4},{itemName: 'strawberry ice cream', dropRate: 0.4}],
+  mixins: ["HitPoints", "Sight", "WanderChaserActor", "WalkerCorporeal", "MeleeAttacker", "MeleeDefender", "ItemDropper", "MoneyDropper"]
 });

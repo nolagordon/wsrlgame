@@ -42,7 +42,11 @@ Game.EntityMixin.PlayerMessager = {
       },
 
       'killed': function(evtData) {
-        Game.Message.sendMessage('you were killed by the '+evtData.killedBy.getName());
+        if (typeof evtData.killedBy == 'string') {
+          Game.Message.sendMessage('you were killed by '+evtData.killedBy);
+        } else {
+          Game.Message.sendMessage('you were killed by the '+evtData.killedBy.getName());
+        }
         Game.renderMessage();
         Game.Message.ageMessages();
       },
@@ -90,6 +94,14 @@ Game.EntityMixin.PlayerMessager = {
           Game.Message.sendMessage('you dropped the '+evtData.lastItemDroppedName);
         }
         Game.renderMessage();
+      },
+
+      'moneyObtained': function(evtData) {
+        Game.Message.sendMessage('you got ' + evtData.amount + ' sprinkles');
+      },
+
+      'moneyLost': function(evtData) {
+        Game.Message.sendMessage('you lost ' + evtData.amount + ' sprinkles');
       }
     }
   }
@@ -112,23 +124,32 @@ Game.EntityMixin.PlayerActor = {
     listeners: {
       'actionDone': function(evtData) {
         Game.Scheduler.setDuration(this.getCurrentActionDuration());
+        this.raiseSymbolActiveEvent('getHungrier',{duration:this.getCurrentActionDuration()});
         this.setCurrentActionDuration(this.getBaseActionDuration()+Game.util.randomInt(-5,5));
-        setTimeout(function() {Game.TimeEngine.unlock();},1); // NOTE: this tiny delay ensures console output happens in the right order, which in turn means I have confidence in the turn-taking order of the various entities
+        setTimeout(function() {
+          Game.TimeEngine.unlock();
+        },1); // NOTE: this tiny delay ensures console output happens in the right order, which in turn means I have confidence in the turn-taking order of the various entities
         Game.renderMessage();
         // console.log("end player acting");
       },
       'madeKill': function(evtData) {
         var self = this;
         setTimeout(function() { // NOTE: this tiny delay ensures event calls happen in the right order (yes, this is a bit of a hack... might be better to make a postChronicalKill event, though that's also a bit of a hack...)
-          var victoryCheckResp = self.raiseSymbolActiveEvent('calcKillsOf',{entityName:'attack slug'});
+          var victoryCheckResp = self.raiseSymbolActiveEvent('calcKillsOf',{entityName:'chocolate scoop'});
           if (Game.util.compactNumberArray_add(victoryCheckResp.killCount) >= 3) {
-            Game.switchUiMode("gameWin");
+            //Game.switchUiMode("gameWin");
           }
         },1);
       },
       'killed': function(evtData) {
         //Game.TimeEngine.lock();
+        Game.DeadAvatar = this;
         Game.switchUiMode("gameLose");
+      },
+      //TODO: fix this - there has to be a better way to interact with the shop
+      'bumpEntity': function(evtData) {
+        // If the player bumped into the shopkeeper, we want to raise an event
+        evtData.recipient.raiseSymbolActiveEvent('bumped',{actor: evtData.actor});
       }
     }
   },
@@ -164,6 +185,114 @@ Game.EntityMixin.PlayerActor = {
   }
 };
 
+Game.EntityMixin.ItemDropper = {
+  META: {
+    mixinName: 'ItemDropper',
+    mixinGroup: 'ItemDropper',
+    stateNamespace: '_ItemDropper_attr',
+    stateModel: {
+      items: []
+    },
+    init: function(template) {
+      this.attr._ItemDropper_attr.items = template.items || [];
+    },
+    listeners: {
+      'killed': function(evtData) {
+        // Use each item's drop rate to decide whether or not to drop
+        for (var i = 0; i < this.attr._ItemDropper_attr.items.length; i++) {
+          if (Math.random() < this.attr._ItemDropper_attr.items[i].dropRate) {
+            // Drop the item at the spot the entity died
+            itemPos = evtData.entityPos;
+            this.getMap().addItem(Game.ItemGenerator.create(this.attr._ItemDropper_attr.items[i].itemName),itemPos);
+          }
+        }
+      }
+    }
+  }
+};
+
+Game.EntityMixin.MoneyDropper = {
+  META: {
+    mixinName: 'MoneyDropper',
+    mixinGroup: 'MoneyDropper',
+    stateNamespace: '_MoneyDropper_attr',
+    stateModel: {
+      amountToDrop: 0
+    },
+    init: function(template) {
+      this.attr._MoneyDropper_attr.amountToDrop = template.amountToDrop || [];
+    },
+    listeners: {
+      'killed': function(evtData) {
+        // If the attacker is a MoneyHolder, add this money to its balance
+        if (evtData.killedBy.hasOwnProperty('deposit')) {
+          evtData.killedBy.deposit(this.attr._MoneyDropper_attr.amountToDrop);
+        }
+      }
+    }
+  }
+};
+
+Game.EntityMixin.FoodConsumer = {
+  META: {
+    mixinName: 'FoodConsumer',
+    mixinGroup: 'FoodConsumer',
+    stateNamespace: '_FoodConsumer_attr',
+    stateModel:  {
+      currentFood: 2000,
+      maxFood: 2000,
+      foodConsumedPer1000Ticks: 1
+    },
+    init: function (template) {
+      this.attr._FoodConsumer_attr.maxFood = template.maxFood || 2000;
+      this.attr._FoodConsumer_attr.currentFood = template.currentFood || (this.attr._FoodConsumer_attr.maxFood*0.9);
+      this.attr._FoodConsumer_attr.foodConsumedPer1000Ticks = template.foodConsumedPer1000Ticks || 1;
+    },
+    listeners: {
+      'getHungrier': function(evtData) {
+        this.getHungrierBy(this.attr._FoodConsumer_attr.foodConsumedPer1000Ticks * evtData.duration/1000);
+      }
+    }
+  },
+  getMaxFood: function () {
+    return this.attr._FoodConsumer_attr.maxFood;
+  },
+  setMaxFood: function (n) {
+    this.attr._FoodConsumer_attr.maxFood = n;
+  },
+  getCurFood: function () {
+    return this.attr._FoodConsumer_attr.currentFood;
+  },
+  setCurFood: function (n) {
+    this.attr._FoodConsumer_attr.currentFood = n;
+  },
+  getFoodConsumedPer1000: function () {
+    return this.attr._FoodConsumer_attr.foodConsumedPer1000Ticks;
+  },
+  setFoodConsumedPer1000: function (n) {
+    this.attr._FoodConsumer_attr.foodConsumedPer1000Ticks = n;
+  },
+  eatFood: function (foodAmt) {
+    this.attr._FoodConsumer_attr.currentFood += foodAmt;
+    if (this.attr._FoodConsumer_attr.currentFood > this.attr._FoodConsumer_attr.maxFood) {this.attr._FoodConsumer_attr.currentFood = this.attr._FoodConsumer_attr.maxFood;}
+  },
+  getHungrierBy: function (foodAmt) {
+    this.attr._FoodConsumer_attr.currentFood -= foodAmt;
+    if (this.attr._FoodConsumer_attr.currentFood < 0) {
+      this.raiseSymbolActiveEvent('killed',{killedBy: 'starvation'});
+    }
+  },
+  getHungerStateDescr: function () {
+    var frac = this.attr._FoodConsumer_attr.currentFood/this.attr._FoodConsumer_attr.maxFood;
+    if (frac < 0.1) { return '%c{#e600e5}%b{#000}*STARVING*'; }
+    if (frac < 0.25) { return '%c{#ff80ff}%b{#000}ravenous'; }
+    if (frac < 0.45) { return '%c{#ffccff}%b{#000}hungry'; }
+    if (frac < 0.65) { return '%c{#fff}%b{#000}peckish'; }
+    if (frac < 0.95) { return '%c{#fff}%b{#000}full'; }
+    return '%c{#33bbff}%b{#000}*stuffed*';
+  }
+};
+
 Game.EntityMixin.WalkerCorporeal = {
   META: {
     mixinName: 'WalkerCorporeal',
@@ -183,7 +312,7 @@ Game.EntityMixin.WalkerCorporeal = {
           return {madeAdjacentMove:false};
         }
         if (map.getEntity(targetX,targetY)) { // can't walk into spaces occupied by other entities
-          this.raiseSymbolActiveEvent('bumpEntity',{actor:this,recipient:map.getEntity(targetX,targetY)});
+          this.raiseSymbolActiveEvent('bumpEntity',{actor:this,recipient:map.getEntity(targetX,targetY), bumpedEntityPos: {x: targetX, y: targetY}});
           // NOTE: should bumping an entity always take a turn? might have to get some return data from the event (once event return data is implemented)
           return {madeAdjacentMove:true};
         }
@@ -212,7 +341,8 @@ Game.EntityMixin.Chronicle = {
     stateModel:  {
       turnCounter: 0,
       killLog:{},
-      deathMessage:''
+      deathMessage:'',
+      killCount: 0
     },
     listeners: {
       'actionDone': function(evtData) {
@@ -223,7 +353,11 @@ Game.EntityMixin.Chronicle = {
         this.addKill(evtData.entKilled);
       },
       'killed': function(evtData) {
-        this.attr._Chronicle_attr.deathMessage = 'killed by '+evtData.killedBy.getName();
+        if (typeof evtData.killedBy == 'string') {
+          this.attr._Chronicle_attr.deathMessage = 'killed by '+evtData.killedBy;
+        } else {
+          this.attr._Chronicle_attr.deathMessage = 'killed by '+evtData.killedBy.getName();
+        }
       },
       'calcKillsOf': function (evtData) {
         return {killCount:this.getKillsOf(evtData.entityName)};
@@ -245,6 +379,9 @@ Game.EntityMixin.Chronicle = {
   getKillsOf: function (entityName) {
     return this.attr._Chronicle_attr.killLog[entityName] || 0;
   },
+  getTotalKills: function () {
+    return this.attr._Chronicle_attr.killCount;
+  },
   clearKills: function () {
     this.attr._Chronicle_attr.killLog = {};
   },
@@ -256,6 +393,7 @@ Game.EntityMixin.Chronicle = {
     } else {
       this.attr._Chronicle_attr.killLog[entName] = 1;
     }
+    this.attr._Chronicle_attr.killCount++;
   }
 };
 
@@ -279,7 +417,7 @@ Game.EntityMixin.HitPoints = {
         this.raiseSymbolActiveEvent('damagedBy',{damager:evtData.attacker,damageAmount:evtData.attackDamage});
         evtData.attacker.raiseSymbolActiveEvent('dealtDamage',{damagee:this,damageAmount:evtData.attackDamage});
         if (this.getCurHp() <= 0) {
-          this.raiseSymbolActiveEvent('killed',{entKilled: this, killedBy: evtData.attacker});
+          this.raiseSymbolActiveEvent('killed',{entKilled: this, killedBy: evtData.attacker, entityPos: evtData.entityPos});
           evtData.attacker.raiseSymbolActiveEvent('madeKill',{entKilled: this, killedBy: evtData.attacker});
         }
       },
@@ -309,46 +447,6 @@ Game.EntityMixin.HitPoints = {
   }
 };
 
-Game.EntityMixin.Hunger = {
-  META: {
-    mixinName: 'Hunger',
-    mixinGroup: 'Hunger',
-    stateNamespace: '_Hunger_attr',
-    stateModel:  {
-      status: 4
-    },
-    init: function (template) {
-      this.attr._Hunger_attr.status = template.status || 4;
-    }
-  },
-  statusToString: function() {
-    switch(this.attr._Hunger_attr.status) {
-      case 1:
-        return "starving";
-      case 2:
-        return "ravenous";
-      case 3:
-        return "hungry";
-      case 4:
-        return "fine";
-      case 5:
-        return "full";
-      case 6:
-        return "stuffed";
-      case 7:
-        return "brainfreeze!";
-      default:
-        return "error: out of range";
-    }
-  },
-  getStatus: function () {
-    return this.attr._Hunger_attr.status;
-  },
-  setStatus: function (n) {
-    this.attr._Hunger_attr.status = n;
-  }
-};
-
 Game.EntityMixin.MeleeAttacker = {
   META: {
     mixinName: 'MeleeAttacker',
@@ -375,7 +473,7 @@ Game.EntityMixin.MeleeAttacker = {
           var hitDamageResp = this.raiseSymbolActiveEvent('calcAttackDamage');
           var damageMitigateResp = evtData.recipient.raiseSymbolActiveEvent('calcDamageMitigation');
 
-          evtData.recipient.raiseSymbolActiveEvent('attacked',{attacker:evtData.actor,attackDamage:Game.util.compactNumberArray_add(hitDamageResp.attackDamage) - Game.util.compactNumberArray_add(damageMitigateResp.damageMitigation)});
+          evtData.recipient.raiseSymbolActiveEvent('attacked',{attacker:evtData.actor,attackDamage:Game.util.compactNumberArray_add(hitDamageResp.attackDamage) - Game.util.compactNumberArray_add(damageMitigateResp.damageMitigation), entityPos: evtData.bumpedEntityPos});
         } else {
           evtData.recipient.raiseSymbolActiveEvent('attackAvoided',{attacker:evtData.actor,recipient:evtData.recipient});
           evtData.actor.raiseSymbolActiveEvent('attackMissed',{attacker:evtData.actor,recipient:evtData.recipient});
@@ -530,6 +628,32 @@ Game.EntityMixin.MapMemory = {
   }
 };
 
+Game.EntityMixin.MoneyHolder = {
+  META: {
+    mixinName: 'MoneyHolder',
+    mixinGroup: 'MoneyHolder',
+    stateNamespace: '_MoneyHolder_attr',
+    stateModel:  {
+      balance: 0
+    },
+    init: function (template) {
+      this.attr._MoneyHolder_attr.balance = template.balance || 0;
+    },
+    listeners: {    }
+  },
+  getBalance: function () {
+    return this.attr._MoneyHolder_attr.balance;
+  },
+  deposit: function (n) {
+    this.attr._MoneyHolder_attr.balance = this.attr._MoneyHolder_attr.balance + n;
+    this.raiseSymbolActiveEvent('moneyObtained',{amount: n});
+  },
+  withdraw: function (n) {
+    this.attr._MoneyHolder_attr.balance = this.attr._MoneyHolder_attr.balance - n;
+    this.raiseSymbolActiveEvent('moneyLost',{amount: n});
+  }
+};
+
 Game.EntityMixin.InventoryHolder = {
   META: {
     mixinName: 'InventoryHolder',
@@ -632,6 +756,91 @@ Game.EntityMixin.InventoryHolder = {
     dropResult.lastItemDroppedName = lastItemDropped.getName();
     this.raiseSymbolActiveEvent('itemsDropped',dropResult);
     return dropResult;
+  }
+};
+
+Game.EntityMixin.Shopkeeper = {
+  META: {
+    mixinName: 'Shopkeeper',
+    mixinGroup: 'Shopkeeper',
+    stateNamespace: '_Shopkeeper_attr',
+    stateModel:  {
+      containerId: '',
+      prices: {}
+    },
+    init: function (template) {
+      this.attr._Shopkeeper_attr.prices = template.prices || {};
+      if (template.containerId) {
+        this.attr._Shopkeeper_attr.containerId = template.containerId;
+      } else {
+        var container = Game.ItemGenerator.create('_inventoryContainer');
+        container.setCapacity(1000);
+        this.attr._Shopkeeper_attr.containerId = container.getId();
+      }
+
+
+    },
+    listeners: {
+      'bumped': function(evtData) {
+        // Want to open up the shop window if the player bumps into the shop
+        Game.addUiMode('LAYER_shopListing');
+        if (evtData.actor.name === 'actor') {
+          Game.addUiMode('LAYER_shopListing');
+        }
+      }
+    }
+  },
+
+  _getContainer: function () {
+    return Game.DATASTORE.ITEM[this.attr._Shopkeeper_attr.containerId];
+  },
+  getPrice: function(item) {
+    return this.attr._Shopkeeper_attr.prices[item.attr._id];
+  },
+
+  addMerchandise: function (item, price) {
+    console.log(item.attr._id);
+    this.attr._Shopkeeper_attr.prices[item.attr._id] = price;
+    console.log("price is " + this.attr._Shopkeeper_attr.prices[item.attr._id]);
+    return this._getContainer().addItems([item]);
+  },
+  getMerchandiseIds: function () {
+    return this._getContainer().getItemIds();
+  },
+  extractMerchandise: function (ids_or_idxs) {
+    return this._getContainer().extractItems(ids_or_idxs);
+  },
+
+  sellItems: function (itemIds, buyer) {
+    // Calculate total price of given items
+    var total = 0;
+    for (var i = 0; i < itemIds.length; i++) {
+      console.log(itemIds[i]);
+      console.log("price is " + this.attr._Shopkeeper_attr.prices[itemIds[i]]);
+      total = total + this.attr._Shopkeeper_attr.prices[itemIds[i]];
+    }
+
+    console.log('total cost is ' + total);
+
+    // Check whether the buyer can afford the items
+    if (buyer.getBalance() < total) {
+      Game.Message.sendMessage("insufficient funds");
+
+    // otherwise withdraw the appropriate amt of money and add items to buyer's inventory
+    } else {
+      buyer.withdraw(total);
+      buyer.addInventoryItems(itemIds);
+      Game.Message.sendMessage("you bought " + itemIds.length + " item(s)");
+      this.extractMerchandise(itemIds);
+    }
+
+    // Remove the appropriate amount of money from the buyer,
+    // then add the item to the buyer's inventory
+    //buyer.withdraw(items[itemIndex].price);
+    //buyer.addInventoryItems(items[itemIndex].item);
+
+    // Remove the bought item from the stock
+    //items.splice(itemIndex,1);
   }
 };
 

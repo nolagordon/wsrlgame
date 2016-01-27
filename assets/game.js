@@ -12,7 +12,6 @@ window.onload = function() {
         document.getElementById('wsrl-main-display').appendChild(   Game.getDisplay('main').getContainer());
         document.getElementById('wsrl-message-display').appendChild(   Game.getDisplay('message').getContainer());
 
-        Game.Message.sendMessage("Welcome to WSRL!");
         Game.switchUiMode('gameStart');
     }
 };
@@ -45,6 +44,8 @@ var Game = {
   TRANSIENT_RNG: null,
 
   DATASTORE: {},
+
+  DeadAvatar: null,
 
   Scheduler: null,
   TimeEngine: null,
@@ -121,8 +122,6 @@ var Game = {
 
     if ('renderAvatarInfo' in this.getCurUiMode()) {
       this.getCurUiMode().renderAvatarInfo(this.DISPLAYS.avatar.o);
-    } else {
-      this.DISPLAYS.avatar.o.drawText(2,1,"avatar display");
     }
   },
   renderMain: function() {
@@ -131,11 +130,9 @@ var Game = {
       return;
     }
 
-    console.dir(this.getCurUiMode());
+    //console.dir(this.getCurUiMode());
     if ('renderOnMain' in this.getCurUiMode()) {
       this.getCurUiMode().renderOnMain(this.DISPLAYS.main.o);
-    } else {
-      this.DISPLAYS.main.o.drawText(2,1,"main display");
     }
   },
   renderMessage: function() {
@@ -159,6 +156,13 @@ var Game = {
     var uiModeName = this._uiModeNameStack[0];
     if (uiModeName) {
       return Game.UIMode[uiModeName];
+    }
+    return null;
+  },
+  getCurUiModeName: function () {
+    var uiModeName = this._uiModeNameStack[0];
+    if (uiModeName) {
+      return uiModeName;
     }
     return null;
   },
@@ -205,6 +209,20 @@ var Game = {
     //   curMode.enter();
     // }
     //this.renderDisplayAll();
+  },
+  removeUiModeAllLayers: function () {
+    var curModeName = this.getCurUiModeName();
+    while ((curModeName !== null) && curModeName.startsWith('LAYER_')) {
+      var curMode = this.getCurUiMode();
+      curMode.exit();
+      this._uiModeNameStack.shift();
+      curModeName = this.getCurUiModeName();
+    }
+    // curMode = this.getCurUiMode();
+    // if (curMode !== null) {
+    //   curMode.enter();
+    // }
+    // this.renderDisplayAll();
   },
 
   /*toJSON: function() {

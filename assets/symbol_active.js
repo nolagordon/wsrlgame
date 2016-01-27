@@ -2,6 +2,7 @@ Game.SymbolActive = function(template) {
   template = template || {};
   Game.Symbol.call(this, template);
   this.attr._name = template.name || '';
+  this.attr._description = template.description || 'completely uninteresting';
   this.attr._id = template.presetId || Game.util.uniqueId();
 
   // mixin sutff
@@ -63,6 +64,13 @@ Game.SymbolActive.prototype.setName = function(name) {
   this.attr._name = name;
 };
 
+Game.SymbolActive.prototype.getDescription = function() {
+  return this.attr._description;
+};
+Game.SymbolActive.prototype.setDescription = function(descr) {
+  this.attr._description = descr;
+};
+
 Game.SymbolActive.prototype.hasMixin = function(checkThis) {
   if (typeof checkThis == 'object') {
     return this._mixinTracker.hasOwnProperty(checkThis.META.mixinName);
@@ -88,6 +96,28 @@ Game.SymbolActive.prototype.raiseSymbolActiveEvent = function(evtLabel,evtData) 
     }
   }
   return response;
+};
+
+Game.SymbolActive.prototype.getDescription = function () {
+  return this.attr._description;
+};
+
+Game.SymbolActive.prototype.getDetailedDescription = function () {
+  var descr = this.getRepresentation('#000')+' '+Game.UIMode.DEFAULT_COLOR_STR + this.getName() + ' - '+this.getDescription();
+  var descrDetails = this.raiseSymbolActiveEvent('getStatsForDisplay');
+  var detailsText = '';
+  for (var det in descrDetails) {
+    if (descrDetails.hasOwnProperty(det)) {
+      if (detailsText) {
+        detailsText += ';';
+      }
+      detailsText += det+': '+descrDetails[det];
+    }
+  }
+  if (detailsText) {
+    descr += "\n"+detailsText;
+  }
+  return descr;
 };
 
 Game.SymbolActive.prototype.toJSON = function () {
